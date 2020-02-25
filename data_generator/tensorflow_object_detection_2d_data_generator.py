@@ -1163,7 +1163,9 @@ class DataGenerator:
             #########################################################################################
             # Compose the output.
             #########################################################################################
-
+            #bye_shape = batch_y_encoded.shape
+            #batch_y_encoded = batch_y_encoded.reshape((bye_shape[0], bye_shape[1], bye_shape[2], 1))
+            
             ret = []
             if 'processed_images' in returns: ret.append(batch_X)
             if 'encoded_labels' in returns: ret.append(batch_y_encoded)
