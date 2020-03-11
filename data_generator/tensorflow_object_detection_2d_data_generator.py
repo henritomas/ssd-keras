@@ -1178,7 +1178,11 @@ class DataGenerator:
             if 'original_images' in returns: ret.append(batch_original_images)
             if 'original_labels' in returns: ret.append(batch_original_labels)
 
-            yield ret
+            #yield ret
+            #tf.keras wants generators to return tuples, not lists. Such a fvcking easy fix
+            #error was shown in tf.keras 1.13 that it should be tuple but in 1.15 it keeps
+            #returning a slided_strice index error so much hate
+            yield tuple(ret)
 
     def save_dataset(self,
                      filenames_path='filenames.pkl',
