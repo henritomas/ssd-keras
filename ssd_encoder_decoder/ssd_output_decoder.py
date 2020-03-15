@@ -389,7 +389,7 @@ def decode_detections_faster_nms(y_pred,
                 
                 # CHANGING NMS FUNCTION
                 # maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                maxima = non_max_suppression_fast(threshold_met, iou_thresholda) # ...perform NMS on them.
+                maxima = non_max_suppression_fast(threshold_met, iou_threshold) # ...perform NMS on them.
                 
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
