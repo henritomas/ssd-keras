@@ -1,0 +1,2 @@
+model_checkpoint_path: "ssdm_test.tf"
+all_model_checkpoint_paths: "ssdm_test.tf"
