@@ -37,10 +37,10 @@ def non_max_suppression_fast(boxes, overlapThresh=0.45):
 	pick = []
 	# boxes is of dimension (1,4,n_boxes)
 	# grab the coordinates of the bounding boxes
-	x1 = boxes[:,2]
-	y1 = boxes[:,4]
-	x2 = boxes[:,3]
-	y2 = boxes[:,5]
+	x1 = boxes[:,1]
+	y1 = boxes[:,3]
+	x2 = boxes[:,2]
+	y2 = boxes[:,4]
 	# compute the area of the bounding boxes and sort the bounding
 	# boxes by the bottom-right y-coordinate of the bounding box
 	area = (x2 - x1 + 1) * (y2 - y1 + 1)
@@ -287,7 +287,7 @@ def decode_detections(y_pred,
     return y_pred_decoded
 
 def decode_detections_faster_nms(y_pred,
-                      confidence_thresh=0.01,
+                      confidence_thresh=0.3,
                       iou_threshold=0.45,
                       top_k=200,
                       input_coords='centroids',
@@ -374,23 +374,33 @@ def decode_detections_faster_nms(y_pred,
     if normalize_coords:
         y_pred_decoded_raw[:,:,[-4,-2]] *= img_width # Convert xmin, xmax back to absolute coordinates
         y_pred_decoded_raw[:,:,[-3,-1]] *= img_height # Convert ymin, ymax back to absolute coordinates
-
+    print("y_pred_decoded_raw shape: ", y_pred_decoded_raw.shape)
     # 3: Apply confidence thresholding and non-maximum suppression per class
 
     n_classes = y_pred_decoded_raw.shape[-1] - 4 # The number of classes is the length of the last axis minus the four box coordinates
-
+    print("n_classes: ", n_classes)
     y_pred_decoded = [] # Store the final predictions in this list
     for batch_item in y_pred_decoded_raw: # `batch_item` has shape `[n_boxes, n_classes + 4 coords]`
+        print("batch_item: ", batch_item)
+        print("batch_item shape: "batch_item.shape)
         pred = [] # Store the final predictions for this batch item here
         for class_id in range(1, n_classes): # For each class except the background class (which has class ID 0)...
             single_class = batch_item[:,[class_id, -4, -3, -2, -1]] # ...keep only the confidences for that class, making this an array of shape `[n_boxes, 5]` and...
             threshold_met = single_class[single_class[:,0] > confidence_thresh] # ...keep only those boxes with a confidence above the set threshold.
+            print("threshold_met: ", threshold_met)
+            print("threshold_met shape: ", threshold_met.shape)
             if threshold_met.shape[0] > 0: # If any boxes made the threshold...
                 
                 # CHANGING NMS FUNCTION
-                # maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                maxima = non_max_suppression_fast(threshold_met, iou_threshold) # ...perform NMS on them.
-                
+                maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
+                print("maxima: ", maxima)
+                print("maxima shape: ", maxima.shape)
+
+                maxima_fast_nms = non_max_suppression_fast(threshold_met, iou_threshold) # ...perform NMS on them.
+                print("maxima_fast_nms: ", maxima_fast_nms)
+                print("maxima_fast_nms shape: ", maxima_fast_nms.shape)
+
+
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
                 maxima_output[:,0] = class_id # Write the class ID to the first column...
