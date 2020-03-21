@@ -382,7 +382,7 @@ def decode_detections_faster_nms(y_pred,
     y_pred_decoded = [] # Store the final predictions in this list
     for batch_item in y_pred_decoded_raw: # `batch_item` has shape `[n_boxes, n_classes + 4 coords]`
         print("batch_item: ", batch_item)
-        print("batch_item shape: "batch_item.shape)
+        print("batch_item shape: ", batch_item.shape)
         pred = [] # Store the final predictions for this batch item here
         for class_id in range(1, n_classes): # For each class except the background class (which has class ID 0)...
             single_class = batch_item[:,[class_id, -4, -3, -2, -1]] # ...keep only the confidences for that class, making this an array of shape `[n_boxes, 5]` and...
