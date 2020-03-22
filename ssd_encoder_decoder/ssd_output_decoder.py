@@ -35,7 +35,7 @@ def non_max_suppression_fast(boxes, overlapThresh=0.45):
 		boxes = boxes.astype("float")
 	# initialize the list of picked indexes	
 	pick = []
-	# boxes is of dimension (1,4,n_boxes)
+	# boxes [confidence, xmin, ymin, xmax, ymax]
 	# grab the coordinates of the bounding boxes
 	x1 = boxes[:,1]
 	y1 = boxes[:,3]
@@ -70,8 +70,8 @@ def non_max_suppression_fast(boxes, overlapThresh=0.45):
 			np.where(overlap > overlapThresh)[0])))
 	# return only the bounding boxes that were picked using the
 	# integer data type
-	return boxes[pick]
-	# return boxes[pick].astype("int")
+	# return boxes[pick]
+	return boxes[pick].astype("int")
 
 
 
@@ -136,6 +136,9 @@ def _greedy_nms(predictions, iou_threshold=0.45, coords='corners', border_pixels
     boxes_left = np.copy(predictions)
     maxima = [] # This is where we store the boxes that make it through the non-maximum suppression
     while boxes_left.shape[0] > 0: # While there are still boxes left to compare...
+        print("START")
+        print("boxes_left:" , boxes_left)
+        print("boxes_left shape: ", boxes_left.shape)
         maximum_index = np.argmax(boxes_left[:,0]) # ...get the index of the next box with the highest confidence...
         print("Maximum index:", maximum_index, maximum_index.shape)
         maximum_box = np.copy(boxes_left[maximum_index]) # ...copy that box and...
@@ -145,6 +148,7 @@ def _greedy_nms(predictions, iou_threshold=0.45, coords='corners', border_pixels
         if boxes_left.shape[0] == 0: break # If there are no boxes left after this step, break. Otherwise...
         similarities = iou(boxes_left[:,1:], maximum_box[1:], coords=coords, mode='element-wise', border_pixels=border_pixels) # ...compare (IoU) the other left over boxes to the maximum box...
         boxes_left = boxes_left[similarities <= iou_threshold] # ...so that we can remove the ones that overlap too much with the maximum box
+        print("END")
     return np.array(maxima)
 
 def _greedy_nms2(predictions, iou_threshold=0.45, coords='corners', border_pixels='half'):
