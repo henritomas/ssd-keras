@@ -44,15 +44,19 @@ def non_max_suppression_fast(boxes, overlapThresh=0.45):
 	# compute the area of the bounding boxes and sort the bounding
 	# boxes by the bottom-right y-coordinate of the bounding box
 	area = (x2 - x1 + 1) * (y2 - y1 + 1)
-	idxs = np.argsort(y2)
+    idxs = np.argsort(y2)
+    print("y2: ", y2)
 	# keep looping while some indexes still remain in the indexes
 	# list
 	while len(idxs) > 0:
 		# grab the last index in the indexes list and add the
 		# index value to the list of picked indexes
-		last = len(idxs) - 1
+		print("START")
+        print("idxs: ", idxs)
+        last = len(idxs) - 1
 		i = idxs[last]
 		pick.append(i)
+        print("pick: ", pick)
 		# find the largest (x, y) coordinates for the start of
 		# the bounding box and the smallest (x, y) coordinates
 		# for the end of the bounding box
@@ -65,9 +69,11 @@ def non_max_suppression_fast(boxes, overlapThresh=0.45):
 		h = np.maximum(0, yy2 - yy1 + 1)
 		# compute the ratio of overlap
 		overlap = (w * h) / area[idxs[:last]]
+        print("overlap: ", overlap)
 		# delete all indexes from the index list that have
 		idxs = np.delete(idxs, np.concatenate(([last],
 			np.where(overlap > overlapThresh)[0])))
+        print("END")
 	# return only the bounding boxes that were picked using the
 	# integer data type
 	# return boxes[pick]
