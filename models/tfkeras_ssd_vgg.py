@@ -315,6 +315,14 @@ def ssd_300(image_size,
     # Feed conv4_3 into the L2 normalization layer
     conv4_3_norm = L2Normalization(gamma_init=20, name='conv4_3_norm')(conv4_3)
 
+    #Check shapes
+    print ("conv4_3 shape: ", conv4_3_norm.shape)
+    print ("fc7 shape: ", fc7.shape)
+    print ('conv6_2 shape', conv6_2.shape)
+    print ('conv7_2 shape', conv7_2.shape)
+    print ('conv8_2 shape', conv8_2.shape)
+    print ('conv9_2 shape', conv9_2.shape)
+
     ### Build the convolutional predictor layers on top of the base network
 
     # We precidt `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
