@@ -8,11 +8,13 @@ import tensorflow.keras.backend as K
 
 
 #from models.depthwise_conv2d import DepthwiseConvolution2D
-from models.mobilenet_v1 import mobilenet
+#from models.mobilenet_v1 import mobilenet
 
 from keras_layers.tensorflow_keras_layer_AnchorBoxes import AnchorBoxes
 from keras_layers.tensorflow_keras_layer_DecodeDetections import DecodeDetections
 from keras_layers.tensorflow_keras_layer_DecodeDetectionsFast import DecodeDetectionsFast
+
+from tensorflow.keras.applications import MobileNet
 
 def ssd_300(mode,
             image_size,
@@ -125,7 +127,11 @@ def ssd_300(mode,
     #                name='input_channel_swap')(x1)
 
 
-    conv4_3_norm , fc7 ,test= mobilenet(input_tensor=x1)
+    #conv4_3_norm , fc7 ,test= mobilenet(input_tensor=x1)
+    mobilenet = MobileNet(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
+    FeatureExtractor = Model(inputs=mobilenet.input, outputs=[mobilenet.get_layer('conv_pw_11_relu').output, mobilenet.get_layer('conv_pw_13_relu').output])
+
+    conv4_3_norm, fc7 = FeatureExtractor(x1)
 
     print ("conv11 shape: ", conv4_3_norm.shape)
     print ("conv13 shape: ", fc7.shape)
@@ -189,31 +195,31 @@ def ssd_300(mode,
     # conv4_3_norm = L2Normalization(gamma_init=20, name='conv4_3_norm')(conv4_3_norm)
    
 
-    conv4_3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
+    conv4_3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
                                     kernel_regularizer=l2(l2_reg), name='conv11_mbox_conf')(conv4_3_norm)
-    fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
+    fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
                            kernel_regularizer=l2(l2_reg), name='conv13_mbox_conf')(fc7)
-    conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
+    conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv14_2_mbox_conf')(conv6_2)
-    conv7_2_mbox_conf = Conv2D(n_boxes[3] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
+    conv7_2_mbox_conf = Conv2D(n_boxes[3] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv15_2_mbox_conf')(conv7_2)
-    conv8_2_mbox_conf = Conv2D(n_boxes[4] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
+    conv8_2_mbox_conf = Conv2D(n_boxes[4] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv16_2_mbox_conf')(conv8_2)
-    conv9_2_mbox_conf = Conv2D(n_boxes[5] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
+    conv9_2_mbox_conf = Conv2D(n_boxes[5] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv17_2_mbox_conf')(conv9_2)
     # We predict 4 box coordinates for each box, hence the localization predictors have depth `n_boxes * 4`
     # Output shape of the localization layers: `(batch, height, width, n_boxes * 4)`
-    conv4_3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (1,1), padding='same', kernel_initializer='he_normal',
+    conv4_3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (3,3), padding='same', kernel_initializer='he_normal',
                                    kernel_regularizer=l2(l2_reg), name='conv11_mbox_loc')(conv4_3_norm)
-    fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (1,1), padding='same', kernel_initializer='he_normal',
+    fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (3,3), padding='same', kernel_initializer='he_normal',
                           kernel_regularizer=l2(l2_reg), name='conv13_mbox_loc')(fc7)
-    conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (1,1), padding='same', kernel_initializer='he_normal',
+    conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (3,3), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv14_2_mbox_loc')(conv6_2)
-    conv7_2_mbox_loc = Conv2D(n_boxes[3] * 4, (1,1), padding='same', kernel_initializer='he_normal',
+    conv7_2_mbox_loc = Conv2D(n_boxes[3] * 4, (3,3), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv15_2_mbox_loc')(conv7_2)
-    conv8_2_mbox_loc = Conv2D(n_boxes[4] * 4, (1,1), padding='same', kernel_initializer='he_normal',
+    conv8_2_mbox_loc = Conv2D(n_boxes[4] * 4, (3,3), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv16_2_mbox_loc')(conv8_2)
-    conv9_2_mbox_loc = Conv2D(n_boxes[5] * 4, (1,1), padding='same', kernel_initializer='he_normal',
+    conv9_2_mbox_loc = Conv2D(n_boxes[5] * 4, (3,3), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv17_2_mbox_loc')(conv9_2)
 
     ### Generate the anchor boxes (called "priors" in the original Caffe/C++ implementation, so I'll keep their layer names)
