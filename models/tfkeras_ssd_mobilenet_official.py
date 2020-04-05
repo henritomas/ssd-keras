@@ -195,31 +195,31 @@ def ssd_300(mode,
     # conv4_3_norm = L2Normalization(gamma_init=20, name='conv4_3_norm')(conv4_3_norm)
    
 
-    conv4_3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
+    conv4_3_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
                                     kernel_regularizer=l2(l2_reg), name='conv11_mbox_conf')(conv4_3_norm)
-    fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
+    fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
                            kernel_regularizer=l2(l2_reg), name='conv13_mbox_conf')(fc7)
-    conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
+    conv6_2_mbox_conf = Conv2D(n_boxes[2] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv14_2_mbox_conf')(conv6_2)
-    conv7_2_mbox_conf = Conv2D(n_boxes[3] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
+    conv7_2_mbox_conf = Conv2D(n_boxes[3] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv15_2_mbox_conf')(conv7_2)
-    conv8_2_mbox_conf = Conv2D(n_boxes[4] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
+    conv8_2_mbox_conf = Conv2D(n_boxes[4] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv16_2_mbox_conf')(conv8_2)
-    conv9_2_mbox_conf = Conv2D(n_boxes[5] * n_classes, (3,3), padding='same', kernel_initializer='he_normal',
+    conv9_2_mbox_conf = Conv2D(n_boxes[5] * n_classes, (1,1), padding='same', kernel_initializer='he_normal',
                                kernel_regularizer=l2(l2_reg), name='conv17_2_mbox_conf')(conv9_2)
     # We predict 4 box coordinates for each box, hence the localization predictors have depth `n_boxes * 4`
     # Output shape of the localization layers: `(batch, height, width, n_boxes * 4)`
-    conv4_3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (3,3), padding='same', kernel_initializer='he_normal',
+    conv4_3_norm_mbox_loc = Conv2D(n_boxes[0] * 4, (1,1), padding='same', kernel_initializer='he_normal',
                                    kernel_regularizer=l2(l2_reg), name='conv11_mbox_loc')(conv4_3_norm)
-    fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (3,3), padding='same', kernel_initializer='he_normal',
+    fc7_mbox_loc = Conv2D(n_boxes[1] * 4, (1,1), padding='same', kernel_initializer='he_normal',
                           kernel_regularizer=l2(l2_reg), name='conv13_mbox_loc')(fc7)
-    conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (3,3), padding='same', kernel_initializer='he_normal',
+    conv6_2_mbox_loc = Conv2D(n_boxes[2] * 4, (1,1), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv14_2_mbox_loc')(conv6_2)
-    conv7_2_mbox_loc = Conv2D(n_boxes[3] * 4, (3,3), padding='same', kernel_initializer='he_normal',
+    conv7_2_mbox_loc = Conv2D(n_boxes[3] * 4, (1,1), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv15_2_mbox_loc')(conv7_2)
-    conv8_2_mbox_loc = Conv2D(n_boxes[4] * 4, (3,3), padding='same', kernel_initializer='he_normal',
+    conv8_2_mbox_loc = Conv2D(n_boxes[4] * 4, (1,1), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv16_2_mbox_loc')(conv8_2)
-    conv9_2_mbox_loc = Conv2D(n_boxes[5] * 4, (3,3), padding='same', kernel_initializer='he_normal',
+    conv9_2_mbox_loc = Conv2D(n_boxes[5] * 4, (1,1), padding='same', kernel_initializer='he_normal',
                               kernel_regularizer=l2(l2_reg), name='conv17_2_mbox_loc')(conv9_2)
 
     ### Generate the anchor boxes (called "priors" in the original Caffe/C++ implementation, so I'll keep their layer names)
@@ -326,22 +326,40 @@ def ssd_300(mode,
     # Output shape of `predictions`: (batch, n_boxes_total, n_classes + 4 + 8)
     predictions = Concatenate(axis=2, name='predictions')([mbox_conf_softmax, mbox_loc, mbox_priorbox])
 
-    model = Model(inputs=x, outputs=predictions)
-    # return model
-
-    if mode == 'inference':
-        print ('in inference mode')
-        decoded_predictions = DecodeDetectionsFast(confidence_thresh=0.01,
-                                                   iou_threshold=0.45,
-                                                   top_k=100,
-                                                   nms_max_output_size=100,
-                                                   coords='centroids',
+    if mode == 'training':
+        model = Model(inputs=x, outputs=predictions)
+    elif mode == 'inference':
+        decoded_predictions = DecodeDetections(confidence_thresh=confidence_thresh,
+                                               iou_threshold=iou_threshold,
+                                               top_k=top_k,
+                                               nms_max_output_size=nms_max_output_size,
+                                               coords=coords,
+                                               normalize_coords=normalize_coords,
+                                               img_height=img_height,
+                                               img_width=img_width,
+                                               name='decoded_predictions')(predictions)
+        model = Model(inputs=x, outputs=decoded_predictions)
+    elif mode == 'inference_fast':
+        decoded_predictions = DecodeDetectionsFast(confidence_thresh=confidence_thresh,
+                                                   iou_threshold=iou_threshold,
+                                                   top_k=top_k,
+                                                   nms_max_output_size=nms_max_output_size,
+                                                   coords=coords,
                                                    normalize_coords=normalize_coords,
                                                    img_height=img_height,
                                                    img_width=img_width,
                                                    name='decoded_predictions')(predictions)
         model = Model(inputs=x, outputs=decoded_predictions)
     else:
-        print ('in training mode')
+        raise ValueError("`mode` must be one of 'training', 'inference' or 'inference_fast', but received '{}'.".format(mode))
 
-    return model
+    if return_predictor_sizes:
+        predictor_sizes = np.array([conv4_3_norm_mbox_conf._keras_shape[1:3],
+                                     fc7_mbox_conf._keras_shape[1:3],
+                                     conv6_2_mbox_conf._keras_shape[1:3],
+                                     conv7_2_mbox_conf._keras_shape[1:3],
+                                     conv8_2_mbox_conf._keras_shape[1:3],
+                                     conv9_2_mbox_conf._keras_shape[1:3]])
+        return model, predictor_sizes
+    else:
+        return model
