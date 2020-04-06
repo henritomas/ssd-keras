@@ -25,7 +25,7 @@ import numpy as np
 from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 
 
-def non_max_suppression_fast(boxes, overlapThresh=0.45):
+def adrian_nms(boxes, overlapThresh=0.45):
 	# if there are no boxes, return an empty list
 	if len(boxes) == 0:
 		return []
@@ -43,7 +43,7 @@ def non_max_suppression_fast(boxes, overlapThresh=0.45):
 	y2 = boxes[:,4]
 	# compute the area of the bounding boxes and sort the bounding
 	# boxes by the bottom-right y-coordinate of the bounding box
-	area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
     idxs = np.argsort(y2)
     print("y2: ", y2)
 	# keep looping while some indexes still remain in the indexes
@@ -277,7 +277,7 @@ def decode_detections(y_pred,
                 
                 # CHANGING NMS FUNCTION
                 maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                # maxima = non_max_suppression_fast(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
+                # maxima = adrian_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
                 
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
@@ -296,7 +296,7 @@ def decode_detections(y_pred,
 
     return y_pred_decoded
 
-def decode_detections_faster_nms(y_pred,
+def decode_detections_adrian_nms(y_pred,
                       confidence_thresh=0.3,
                       iou_threshold=0.45,
                       top_k=200,
@@ -406,7 +406,7 @@ def decode_detections_faster_nms(y_pred,
                 print("maxima: ", maxima)
                 print("maxima shape: ", maxima.shape)
 
-                maxima_fast_nms = non_max_suppression_fast(threshold_met, iou_threshold) # ...perform NMS on them.
+                maxima_fast_nms = adrian_nms(threshold_met, iou_threshold) # ...perform NMS on them.
                 print("maxima_fast_nms: ", maxima_fast_nms)
                 print("maxima_fast_nms shape: ", maxima_fast_nms.shape)
 
