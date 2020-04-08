@@ -286,32 +286,32 @@ def build_model(image_size,
     conv1 = BatchNormalization(axis=3, momentum=0.99, name='bn1')(conv1) # Tensorflow uses filter format [filter_height, filter_width, in_channels, out_channels], hence axis = 3
     
 
-    conv2 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv2')(conv1)
+    conv2 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv2', **kwargs)(conv1)
     conv2 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool2')(conv2)
     conv2 = BatchNormalization(axis=3, momentum=0.99, name='bn2')(conv2)
     
 
-    conv3 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv3')(conv2)
+    conv3 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv3', **kwargs)(conv2)
     conv3 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool3')(conv3)
     conv3 = BatchNormalization(axis=3, momentum=0.99, name='bn3')(conv3)
     
 
-    conv4 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv4')(conv3)
+    conv4 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv4', **kwargs)(conv3)
     conv4 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool4')(conv4)
     conv4 = BatchNormalization(axis=3, momentum=0.99, name='bn4')(conv4)
     
 
-    conv5 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv5')(conv4)
+    conv5 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv5', **kwargs)(conv4)
     conv5 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool5')(conv5)
     conv5 = BatchNormalization(axis=3, momentum=0.99, name='bn5')(conv5)
     
 
-    conv6 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv6')(conv5)
+    conv6 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv6', **kwargs)(conv5)
     conv6 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool6')(conv6)
     conv6 = BatchNormalization(axis=3, momentum=0.99, name='bn6')(conv6)
     
 
-    conv7 = QuantConv2D(32, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv7')(conv6)
+    conv7 = QuantConv2D(32, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv7', **kwargs)(conv6)
     conv7 = BatchNormalization(axis=3, momentum=0.99, name='bn7')(conv7)
 
     # The next part is to add the convolutional predictor layers on top of the base network
