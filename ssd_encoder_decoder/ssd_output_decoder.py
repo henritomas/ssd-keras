@@ -24,18 +24,7 @@ import numpy as np
 
 from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 
-# Libraries for yolact_nms
-from __future__ import absolute_import, division, print_function, unicode_literals
 
-# Install TensorFlow
-try:
-  # %tensorflow_version only exists in Colab.
-  %tensorflow_version 2.x
-except Exception:
-  pass
-
-import tensorflow as tf
-tf.
 
 
 
