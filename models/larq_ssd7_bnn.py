@@ -292,7 +292,7 @@ def build_model(image_size,
     
 
     conv3 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv3', **kwargs)(conv2)
-    conv3 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool3')(conv3)
+    #conv3 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool3')(conv3)
     conv3 = BatchNormalization(axis=3, momentum=0.99, name='bn3')(conv3)
     
     #Conv1,2,3 are for feature extraction and downsampling
