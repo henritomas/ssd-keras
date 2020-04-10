@@ -62,7 +62,7 @@ def jaccard(box_a, box_b, iscrowd:bool=False):
     out = inter / area_a if iscrowd else inter / union
     return out if use_batch else tf.squeeze(out,0)
 
-@tf.function
+# @tf.function
 def yolact_nms(
         boxes,
         scores,
@@ -231,6 +231,7 @@ def yolact_nms_decoder(y_pred,
 
 
 def adrian_nms(boxes, overlapThresh=0.45):
+    print("STARTING ADRIAN NMS")
 	# if there are no boxes, return an empty list
     if len(boxes) == 0:
         return []
@@ -253,10 +254,11 @@ def adrian_nms(boxes, overlapThresh=0.45):
     print("y2: ", y2)
 	# keep looping while some indexes still remain in the indexes
 	# list
+    counter = 1
     while len(idxs) > 0:
 		# grab the last index in the indexes list and add the
 		# index value to the list of picked indexes
-        print("START")
+        print("START", counter)
         print("idxs: ", idxs)
         last = len(idxs) - 1
         i = idxs[last]
@@ -278,10 +280,12 @@ def adrian_nms(boxes, overlapThresh=0.45):
 		# delete all indexes from the index list that have
         idxs = np.delete(idxs, np.concatenate(([last],
             np.where(overlap > overlapThresh)[0])))
-        print("END\n")
+        print("END", counter, "\n")
+        counter += 1
 	# return only the bounding boxes that were picked using the
 	# integer data type
 	# return boxes[pick]
+    print("EXITING ADRIAN NMS")
     return boxes[pick].astype("int")
 def adrian_nms_decoder(y_pred,
                       confidence_thresh=0.3,
@@ -389,13 +393,13 @@ def adrian_nms_decoder(y_pred,
             if threshold_met.shape[0] > 0: # If any boxes made the threshold...
                 
                 # CHANGING NMS FUNCTION
-                maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                print("maxima: ", maxima)
-                print("maxima shape: ", maxima.shape)
+                # maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
+                # print("maxima: ", maxima)
+                # print("maxima shape: ", maxima.shape)
 
-                maxima_fast_nms = adrian_nms(threshold_met, iou_threshold) # ...perform NMS on them.
-                print("maxima_fast_nms: ", maxima_fast_nms)
-                print("maxima_fast_nms shape: ", maxima_fast_nms.shape)
+                maxima_adrian_nms = adrian_nms(threshold_met, iou_threshold) # ...perform NMS on them.
+                print("maxima_adrian_nms: ", maxima_adrian_nms)
+                print("maxima_adrian_nms shape: ", maxima_adrian_nms.shape)
 
 
 
@@ -474,10 +478,12 @@ def _greedy_nms(predictions, iou_threshold=0.45, coords='corners', border_pixels
     The same greedy non-maximum suppression algorithm as above, but slightly modified for use as an internal
     function for per-class NMS in `decode_detections()`.
     '''
+    print("ENTERING GREEDY NMS")
     boxes_left = np.copy(predictions)
     maxima = [] # This is where we store the boxes that make it through the non-maximum suppression
+    counter = 1
     while boxes_left.shape[0] > 0: # While there are still boxes left to compare...
-        print("START")
+        print("START loop greedy", counter)
         print("boxes_left:" , boxes_left)
         print("boxes_left shape: ", boxes_left.shape)
         maximum_index = np.argmax(boxes_left[:,0]) # ...get the index of the next box with the highest confidence...
@@ -489,7 +495,9 @@ def _greedy_nms(predictions, iou_threshold=0.45, coords='corners', border_pixels
         if boxes_left.shape[0] == 0: break # If there are no boxes left after this step, break. Otherwise...
         similarities = iou(boxes_left[:,1:], maximum_box[1:], coords=coords, mode='element-wise', border_pixels=border_pixels) # ...compare (IoU) the other left over boxes to the maximum box...
         boxes_left = boxes_left[similarities <= iou_threshold] # ...so that we can remove the ones that overlap too much with the maximum box
-        print("END\n")
+        print("END loop greedy", counter, "\n")
+        counter += 1
+    print("EXITING GREEDY NMS")
     return np.array(maxima)
 
 def _greedy_nms2(predictions, iou_threshold=0.45, coords='corners', border_pixels='half'):
