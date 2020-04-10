@@ -287,15 +287,17 @@ def build_model(image_size,
 
 
     conv2 = QuantConv2D(48, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv2', **kwargs)(conv1)
-    #conv2 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool2')(conv2)
+    conv2 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool2')(conv2)
     conv2 = BatchNormalization(axis=3, momentum=0.99, name='bn2')(conv2)
     
 
     conv3 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv3', **kwargs)(conv2)
-    #conv3 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool3')(conv3)
+    conv3 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool3')(conv3)
     conv3 = BatchNormalization(axis=3, momentum=0.99, name='bn3')(conv3)
     
-
+    #Conv1,2,3 are for feature extraction and downsampling
+    #Conv4,5,6,7 are the pre-detection feature maps
+    
     conv4 = QuantConv2D(64, (3, 3), strides=(1, 1), padding="same", kernel_initializer='glorot_normal', use_bias=False, name='conv4', **kwargs)(conv3)
     conv4 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='pool4')(conv4)
     conv4 = BatchNormalization(axis=3, momentum=0.99, name='bn4')(conv4)
