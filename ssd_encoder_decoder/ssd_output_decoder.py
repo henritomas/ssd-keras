@@ -270,6 +270,7 @@ def adrian_nms(boxes, overlapThresh=0.45):
         print("idxs: ", idxs)
         last = len(idxs) - 1
         i = idxs[last]
+        print("i: ", i)
         pick.append(i)
         print("pick: ", pick)
 		# find the largest (x, y) coordinates for the start of
@@ -279,6 +280,11 @@ def adrian_nms(boxes, overlapThresh=0.45):
         yy1 = np.maximum(y1[i], y1[idxs[:last]])
         xx2 = np.minimum(x2[i], x2[idxs[:last]])
         yy2 = np.minimum(y2[i], y2[idxs[:last]])
+        print("xx1: ", xx1)
+        print("yy1: ", yy1)
+        print("xx2: ", xx2)
+        print("yy2: ", yy2)
+
 		# compute the width and height of the bounding box
         w = np.maximum(0, xx2 - xx1 + 1)
         print("w:" , w)
