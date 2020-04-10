@@ -78,6 +78,7 @@ def yolact_nms(
 
 
     num_classes= tf.shape(idx)[0]
+    print("num_classes: ", num_classes)
 
     iou=jaccard(boxes,boxes,True)
     mask_iou = tf.linalg.band_part(iou, -1, 0)
@@ -88,18 +89,37 @@ def yolact_nms(
     keep=tf.cast(keep,tf.float32)
     if score_threshold>=0.:
         keep *= tf.cast(scores > score_threshold, tf.float32)
+    print("keep: ", keep)
 
 
 
     classes=tf.range(num_classes)[:, None]
     classes=tf.broadcast_to(classes,tf.shape(keep))
     classes=tf.boolean_mask(classes,keep)
+    print("classes: ", classes)
+    
     boxes=tf.boolean_mask(boxes,keep)
+    print("boxes: ", boxes)
+
     scores=tf.boolean_mask(scores,keep)
+    print("scores: ", scores)
+    
     idx=tf.argsort(scores,axis=0,direction='DESCENDING')
+    print("sorted idx: ", idx)
+
+
     scores = tf.sort(scores, axis=0, direction='DESCENDING')
+    print("sorted scores: ", scores)
+    
+    
     boxes=tf.gather(boxes, idx, axis=0)
+    print("boxes gather: ", boxes)
+
+
     classes = tf.gather(classes, idx, axis=0)
+    print("classes gather: ", classes)
+
+
     scores=scores[:max_output_size]
     boxes=boxes[:max_output_size]
     classes=classes[:max_output_size]
@@ -206,9 +226,20 @@ def yolact_nms_decoder(y_pred,
             if threshold_met.shape[0] > 0: # If any boxes made the threshold...
                 
                 # CHANGING NMS FUNCTION
-                maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                # maxima = adrian_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
+
+                boxes = threshold_met[:,-4]
+                scores = threshold_met[:,0]
+                max_output_size = None
                 
+                # maxima = yolact_nms(boxes, scores, max_output_size, iou_threshold=0.5, score_threshold=float('-inf'), top_k=200)               
+                maxima = yolact_nms(boxes, scores, max_output_size, iou_threshold=0.5, score_threshold=float('-inf'), top_k=200)
+                print("maxima: ", maxima)
+                print("maxima shape: ", maxima.shape)
+
+                # maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
+                # print("maxima: ", maxima)
+                # print("maxima shape: ", maxima.shape)
+
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
                 maxima_output[:,0] = class_id # Write the class ID to the first column...
@@ -258,8 +289,10 @@ def adrian_nms(boxes, overlapThresh=0.45):
     area = (x2 - x1 + 1) * (y2 - y1 + 1)
     print("area:" , area)
 
-    idxs = np.argsort(y2)
-    print("y2: ", y2)
+    probs = boxes[:,0]
+
+    idxs = np.argsort(probs)
+    print("probs: ", probs)
 	# keep looping while some indexes still remain in the indexes
 	# list
     counter = 1
