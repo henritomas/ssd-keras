@@ -243,13 +243,21 @@ def adrian_nms(boxes, overlapThresh=0.45):
     pick = []
 	# boxes [confidence, xmin, ymin, xmax, ymax]
 	# grab the coordinates of the bounding boxes
+    print("boxes: ", boxes)
     x1 = boxes[:,1]
-    y1 = boxes[:,3]
-    x2 = boxes[:,2]
+    y1 = boxes[:,2]
+    x2 = boxes[:,3]
     y2 = boxes[:,4]
+    print("x1:" , x1)
+    print("x2:" , x2)
+    print("y1:" , y1)
+    print("y2:" , y2)
+
 	# compute the area of the bounding boxes and sort the bounding
 	# boxes by the bottom-right y-coordinate of the bounding box
     area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    print("area:" , area)
+
     idxs = np.argsort(y2)
     print("y2: ", y2)
 	# keep looping while some indexes still remain in the indexes
@@ -273,7 +281,9 @@ def adrian_nms(boxes, overlapThresh=0.45):
         yy2 = np.minimum(y2[i], y2[idxs[:last]])
 		# compute the width and height of the bounding box
         w = np.maximum(0, xx2 - xx1 + 1)
+        print("w:" , w)
         h = np.maximum(0, yy2 - yy1 + 1)
+        print("h:" , h)
 		# compute the ratio of overlap
         overlap = (w * h) / area[idxs[:last]]
         print("overlap: ", overlap)
@@ -286,7 +296,9 @@ def adrian_nms(boxes, overlapThresh=0.45):
 	# integer data type
 	# return boxes[pick]
     print("EXITING ADRIAN NMS")
-    return boxes[pick].astype("int")
+    return boxes[pick]
+    # return boxes[pick].astype("int")
+
 def adrian_nms_decoder(y_pred,
                       confidence_thresh=0.3,
                       iou_threshold=0.45,
@@ -403,9 +415,9 @@ def adrian_nms_decoder(y_pred,
 
 
 
-                maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
+                maxima_output = np.zeros((maxima_adrian_nms.shape[0], maxima_adrian_nms.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
                 maxima_output[:,0] = class_id # Write the class ID to the first column...
-                maxima_output[:,1:] = maxima # ...and write the maxima to the other columns...
+                maxima_output[:,1:] = maxima_adrian_nms # ...and write the maxima to the other columns...
                 pred.append(maxima_output) # ...and append the maxima for this class to the list of maxima for this batch item.
         # Once we're through with all classes, keep only the `top_k` maxima with the highest scores
         if pred: # If there are any predictions left after confidence-thresholding...
