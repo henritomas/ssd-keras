@@ -25,6 +25,7 @@ import numpy as np
 from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 
 # import tensorflow as tf
+import torch
 
 
 
@@ -32,17 +33,13 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         
         max_num_detections = 100
 
-        # scores, idx = scores.sort(1, descending=True)
-        print("sorted scores: ", scores)
-        
-        scores = np.sort(scores)
-        idx = np.argsort(scores)
+        scores, idx = scores.sort(1, descending=True)
         
         print("sorted scores: ", scores)
         print("sorted idx: ", idx)
     
 
-
+        # FIX THIS
         idx = idx[:, :top_k].contiguous()
         print("contiguous idx: ", idx)
 
@@ -50,20 +47,26 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         scores = scores[:, :top_k]
         print("top_k scores: ", scores)
 
-    
+        # FIX THIS
         num_classes, num_dets = idx.size()
         print("num_classes: ", num_classes)
         print("num_dets: ", num_dets)
 
 
-
-        boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
+        # FIX THIS
         print("boxes: ", boxes)
+        boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
+        print("boxes.view: ", boxes)
 
-
+        # FIX THIS
         jac = iou(boxes, boxes)
+        print("jac: ", jac)
+
         jac.triu_(diagonal=1)
+        print("jac.triu: ", jac)
+
         jac_max, _ = jac.max(dim=1)
+        print("jac_max: ", jac_max)
 
         # Now just filter out the ones higher than the threshold
         keep = (jac_max <= iou_threshold)
@@ -83,21 +86,20 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         # Assign each kept detection to its corresponding class
         # classes = torch.arange(num_classes, device=boxes.device)[:, None].expand_as(keep)
         # classes = classes[keep]
-
+        
         boxes = boxes[keep]
-        masks = masks[keep]
         scores = scores[keep]
         
         # Only keep the top cfg.max_num_detections highest scores across all classes
         scores, idx = scores.sort(0, descending=True)
+
         idx = idx[:max_num_detections]
         scores = scores[max_num_detections]
 
         # classes = classes[idx]
         boxes = boxes[idx]
-        masks = masks[idx]
 
-        return boxes, masks, scores # , classes
+        return boxes, scores
 
 def yolact_nms_decoder(y_pred,
                       confidence_thresh=0.01,
@@ -206,14 +208,17 @@ def yolact_nms_decoder(y_pred,
                 scores = threshold_met[:,0]
                 # max_output_size = None
                 
-                # maxima = yolact_nms(boxes, scores, , iouthreshold=0.5, top_k:int=200, second_threshold:bool=False)               
-                maxima = yolact_nms(boxes, scores)
-                print("maxima: ", maxima)
-                print("maxima shape: ", maxima.shape)
-
-                # maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
+                              
+                # maxima = yolact_nms(boxes, scores)
                 # print("maxima: ", maxima)
                 # print("maxima shape: ", maxima.shape)
+
+                boxes, scores = yolact_nms(boxes, scores)
+                print("boxes: ", boxes)
+                print("boxes shape: ", boxes.shape)
+                print("scores: ", scores)
+                print("scores shape: ", scores.shape)
+
 
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
