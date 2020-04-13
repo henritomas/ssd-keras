@@ -26,8 +26,7 @@ from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 
 # import tensorflow as tf
 import torch
-
-
+import torch.nn.functional as F
 
 def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_threshold:bool=False):
         
