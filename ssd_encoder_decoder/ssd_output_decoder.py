@@ -24,106 +24,76 @@ import numpy as np
 
 from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 
+# import tensorflow as tf
 
 
 
+def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_threshold:bool=False):
+        
+        max_num_detections = 100
 
-def jaccard(box_a, box_b, iscrowd:bool=False):
-    """Compute the jaccard overlap of two sets of boxes.  The jaccard overlap
-    is simply the intersection over union of two boxes.  Here we operate on
-    ground truth boxes and default boxes. If iscrowd=True, put the crowd in box_b.
-    E.g.:
-        A ∩ B / A ∪ B = A ∩ B / (area(A) + area(B) - A ∩ B)
-    Args:
-        box_a: (tensor) Ground truth bounding boxes, Shape: [num_objects,4]
-        box_b: (tensor) Prior boxes from priorbox layers, Shape: [num_priors,4]
-    Return:
-        jaccard overlap: (tensor) Shape: [box_a.size(0), box_b.size(0)]
-    """
-    box_a=tf.convert_to_tensor(box_a)
-    box_b=tf.convert_to_tensor(box_b)
-    use_batch = True
-    if tf.rank(box_a) == 2:
-        use_batch = False
-        box_a = box_a[None, ...]
-        box_b = box_b[None, ...]
-
-    intersect_mins = tf.maximum(tf.expand_dims(box_a[...,:2],2), tf.expand_dims(box_b[...,:2],1))
-    intersect_maxs = tf.minimum(tf.expand_dims(box_a[...,2:],2), tf.expand_dims(box_b[...,2:],1))
-    intersect_wh = tf.maximum(intersect_maxs - intersect_mins, 0.)
-    inter = intersect_wh[..., 0] * intersect_wh[..., 1]
-
-    area_a = tf.broadcast_to(tf.expand_dims((box_a[:, :, 2]-box_a[:, :, 0]) *
-              (box_a[:, :, 3]-box_a[:, :, 1]),2),tf.shape(inter))  # [A,B]
-    area_b = tf.broadcast_to(tf.expand_dims((box_b[:, :, 2]-box_b[:, :, 0]) *
-              (box_b[:, :, 3]-box_b[:, :, 1]),1),tf.shape(inter))  # [A,B]
-    union = tf.reshape(area_a,tf.shape(inter)) + tf.reshape(area_b,tf.shape(inter)) - inter
-
-    out = inter / area_a if iscrowd else inter / union
-    return out if use_batch else tf.squeeze(out,0)
-
-# @tf.function
-def yolact_nms(
-        boxes,
-        scores,
-        max_output_size,
-        iou_threshold=0.5,
-        score_threshold=float('-inf'),
-        top_k=200):
-    boxes=tf.convert_to_tensor(boxes)
-    idx = tf.argsort(scores, direction='DESCENDING')[:top_k]
-    scores=tf.sort(scores,direction='DESCENDING')[:top_k]
-    boxes=tf.gather(boxes,idx,axis=1,batch_dims=1)
-
-
-
-    num_classes= tf.shape(idx)[0]
-    print("num_classes: ", num_classes)
-
-    iou=jaccard(boxes,boxes,True)
-    mask_iou = tf.linalg.band_part(iou, -1, 0)
-    iou = iou - mask_iou
-
-    iou_max = tf.math.reduce_max(iou, axis=1)
-    keep=tf.constant(iou_max<=iou_threshold,tf.bool,tf.shape(iou_max))
-    keep=tf.cast(keep,tf.float32)
-    if score_threshold>=0.:
-        keep *= tf.cast(scores > score_threshold, tf.float32)
-    print("keep: ", keep)
-
-
-
-    classes=tf.range(num_classes)[:, None]
-    classes=tf.broadcast_to(classes,tf.shape(keep))
-    classes=tf.boolean_mask(classes,keep)
-    print("classes: ", classes)
+        scores, idx = scores.sort(1, descending=True)
+        print("sorted scores: ", scores)
+        print("sorted idx: ", idx)
     
-    boxes=tf.boolean_mask(boxes,keep)
-    print("boxes: ", boxes)
 
-    scores=tf.boolean_mask(scores,keep)
-    print("scores: ", scores)
+
+        idx = idx[:, :top_k].contiguous()
+        print("contiguous idx: ", idx)
+
     
-    idx=tf.argsort(scores,axis=0,direction='DESCENDING')
-    print("sorted idx: ", idx)
+        scores = scores[:, :top_k]
+        print("top_k scores: ", scores)
 
-
-    scores = tf.sort(scores, axis=0, direction='DESCENDING')
-    print("sorted scores: ", scores)
     
-    
-    boxes=tf.gather(boxes, idx, axis=0)
-    print("boxes gather: ", boxes)
+        num_classes, num_dets = idx.size()
+        print("num_classes: ", num_classes)
+        print("num_dets: ", num_dets)
 
 
-    classes = tf.gather(classes, idx, axis=0)
-    print("classes gather: ", classes)
+
+        boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
+        print("boxes: ", boxes)
 
 
-    scores=scores[:max_output_size]
-    boxes=boxes[:max_output_size]
-    classes=classes[:max_output_size]
-    return boxes,classes,scores
+        jac = iou(boxes, boxes)
+        jac.triu_(diagonal=1)
+        jac_max, _ = jac.max(dim=1)
+
+        # Now just filter out the ones higher than the threshold
+        keep = (jac_max <= iou_threshold)
+        print("keep: ", keep)
+
+
+        # We should also only keep detections over the confidence threshold, but at the cost of
+        # maxing out your detection count for every image, you can just not do that. Because we
+        # have such a minimal amount of computation per detection (matrix mulitplication only),
+        # this increase doesn't affect us much (+0.2 mAP for 34 -> 33 fps), so we leave it out.
+        # However, when you implement this in your method, you should do this second threshold.
+        
+        # to use, add self to input parameters
+        # if second_threshold:
+        #     keep *= (scores > self.conf_thresh)
+
+        # Assign each kept detection to its corresponding class
+        # classes = torch.arange(num_classes, device=boxes.device)[:, None].expand_as(keep)
+        # classes = classes[keep]
+
+        boxes = boxes[keep]
+        scores = scores[keep]
+        
+        # Only keep the top cfg.max_num_detections highest scores across all classes
+        scores, idx = scores.sort(0, descending=True)
+        idx = idx[:max_num_detections]
+        scores = scores[max_num_detections]
+
+        # classes = classes[idx]
+        boxes = boxes[idx]
+
+
+        return boxes, scores # , classes, masks
+
+
 def yolact_nms_decoder(y_pred,
                       confidence_thresh=0.01,
                       iou_threshold=0.45,
@@ -229,10 +199,10 @@ def yolact_nms_decoder(y_pred,
 
                 boxes = threshold_met[:,-4]
                 scores = threshold_met[:,0]
-                max_output_size = None
+                # max_output_size = None
                 
-                # maxima = yolact_nms(boxes, scores, max_output_size, iou_threshold=0.5, score_threshold=float('-inf'), top_k=200)               
-                maxima = yolact_nms(boxes, scores, max_output_size, iou_threshold=0.5, score_threshold=float('-inf'), top_k=200)
+                # maxima = yolact_nms(boxes, scores, , iouthreshold=0.5, top_k:int=200, second_threshold:bool=False)               
+                maxima = yolact_nms(boxes, scores)
                 print("maxima: ", maxima)
                 print("maxima shape: ", maxima.shape)
 
