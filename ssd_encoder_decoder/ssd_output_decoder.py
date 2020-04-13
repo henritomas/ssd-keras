@@ -32,7 +32,12 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         
         max_num_detections = 100
 
-        scores, idx = scores.sort(1, descending=True)
+        # scores, idx = scores.sort(1, descending=True)
+        print("sorted scores: ", scores)
+        
+        scores = np.sort(scores)
+        idx = np.argsort(scores)
+        
         print("sorted scores: ", scores)
         print("sorted idx: ", idx)
     
@@ -80,6 +85,7 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         # classes = classes[keep]
 
         boxes = boxes[keep]
+        masks = masks[keep]
         scores = scores[keep]
         
         # Only keep the top cfg.max_num_detections highest scores across all classes
@@ -89,10 +95,9 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
 
         # classes = classes[idx]
         boxes = boxes[idx]
+        masks = masks[idx]
 
-
-        return boxes, scores # , classes, masks
-
+        return boxes, masks, scores # , classes
 
 def yolact_nms_decoder(y_pred,
                       confidence_thresh=0.01,
