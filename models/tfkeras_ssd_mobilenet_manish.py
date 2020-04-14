@@ -320,22 +320,40 @@ def ssd_300(mode,
     # Output shape of `predictions`: (batch, n_boxes_total, n_classes + 4 + 8)
     predictions = Concatenate(axis=2, name='predictions')([mbox_conf_softmax, mbox_loc, mbox_priorbox])
 
-    model = Model(inputs=x, outputs=predictions)
-    # return model
-
-    if mode == 'inference':
-        print ('in inference mode')
-        decoded_predictions = DecodeDetectionsFast(confidence_thresh=0.01,
-                                                   iou_threshold=0.45,
-                                                   top_k=100,
-                                                   nms_max_output_size=100,
-                                                   coords='centroids',
+    if mode == 'training':
+        model = Model(inputs=x, outputs=predictions)
+    elif mode == 'inference':
+        decoded_predictions = DecodeDetections(confidence_thresh=confidence_thresh,
+                                               iou_threshold=iou_threshold,
+                                               top_k=top_k,
+                                               nms_max_output_size=nms_max_output_size,
+                                               coords=coords,
+                                               normalize_coords=normalize_coords,
+                                               img_height=img_height,
+                                               img_width=img_width,
+                                               name='decoded_predictions')(predictions)
+        model = Model(inputs=x, outputs=decoded_predictions)
+    elif mode == 'inference_fast':
+        decoded_predictions = DecodeDetectionsFast(confidence_thresh=confidence_thresh,
+                                                   iou_threshold=iou_threshold,
+                                                   top_k=top_k,
+                                                   nms_max_output_size=nms_max_output_size,
+                                                   coords=coords,
                                                    normalize_coords=normalize_coords,
                                                    img_height=img_height,
                                                    img_width=img_width,
                                                    name='decoded_predictions')(predictions)
         model = Model(inputs=x, outputs=decoded_predictions)
     else:
-        print ('in training mode')
+        raise ValueError("`mode` must be one of 'training', 'inference' or 'inference_fast', but received '{}'.".format(mode))
 
-    return model
+    if return_predictor_sizes:
+        predictor_sizes = np.array([conv4_3_norm_mbox_conf._keras_shape[1:3],
+                                     fc7_mbox_conf._keras_shape[1:3],
+                                     conv6_2_mbox_conf._keras_shape[1:3],
+                                     conv7_2_mbox_conf._keras_shape[1:3],
+                                     conv8_2_mbox_conf._keras_shape[1:3],
+                                     conv9_2_mbox_conf._keras_shape[1:3]])
+        return model, predictor_sizes
+    else:
+        return model
