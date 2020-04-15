@@ -25,14 +25,18 @@ import numpy as np
 from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 
 # import tensorflow as tf
-import torch
-import torch.nn.functional as F
+# import torch
+# import torch.nn.functional as F
 
 def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_threshold:bool=False):
         
         max_num_detections = 100
 
-        scores, idx = scores.sort(1, descending=True)
+        # scores, idx = scores.sort(1, descending=True)
+        print("sorted scores: ", scores)
+
+        scores = np.sort(scores)
+        idx = np.argsort(scores)
         
         print("sorted scores: ", scores)
         print("sorted idx: ", idx)
@@ -53,19 +57,13 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
 
 
         # FIX THIS
-        print("boxes: ", boxes)
         boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
-        print("boxes.view: ", boxes)
+        print("boxes: ", boxes)
 
         # FIX THIS
         jac = iou(boxes, boxes)
-        print("jac: ", jac)
-
         jac.triu_(diagonal=1)
-        print("jac.triu: ", jac)
-
         jac_max, _ = jac.max(dim=1)
-        print("jac_max: ", jac_max)
 
         # Now just filter out the ones higher than the threshold
         keep = (jac_max <= iou_threshold)
@@ -85,12 +83,14 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         # Assign each kept detection to its corresponding class
         # classes = torch.arange(num_classes, device=boxes.device)[:, None].expand_as(keep)
         # classes = classes[keep]
-        
+
         boxes = boxes[keep]
         scores = scores[keep]
         
         # Only keep the top cfg.max_num_detections highest scores across all classes
-        scores, idx = scores.sort(0, descending=True)
+        # scores, idx = scores.sort(0, descending=True)
+        scores = np.sort(scores)
+        idx = np.argsort(scores)
 
         idx = idx[:max_num_detections]
         scores = scores[max_num_detections]
