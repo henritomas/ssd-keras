@@ -29,39 +29,45 @@ from bounding_box_utils.bounding_box_utils import iou, convert_coordinates
 # import torch.nn.functional as F
 
 def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_threshold:bool=False):
-        
+        print("ENTERING YOLACT NMS")
         max_num_detections = 100
 
         # scores, idx = scores.sort(1, descending=True)
-        print("sorted scores: ", scores)
+        print("inputted scores: ", scores)
 
-        scores = np.sort(scores)
         idx = np.argsort(scores)
+        scores = np.sort(scores)
+        
         
         print("sorted scores: ", scores)
         print("sorted idx: ", idx)
     
 
         # FIX THIS
-        idx = idx[:, :top_k].contiguous()
-        print("contiguous idx: ", idx)
+        idx = idx[:top_k]
+        # idx = idx[:top_k].contiguous()
+        print("top_k idx: ", idx)
 
     
-        scores = scores[:, :top_k]
+        scores = scores[:top_k]
         print("top_k scores: ", scores)
 
-        # FIX THIS
-        num_classes, num_dets = idx.size()
-        print("num_classes: ", num_classes)
-        print("num_dets: ", num_dets)
+        # # FIX THIS
+        # num_classes, num_dets = idx.size()
+        # print("num_classes: ", num_classes)
+        # print("num_dets: ", num_dets)
 
 
-        # FIX THIS
-        boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
+        # # FIX THIS
+        # boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
+        # print("boxes: ", boxes)
+
+
         print("boxes: ", boxes)
 
         # FIX THIS
         jac = iou(boxes, boxes)
+        print("jac: ", jac)
         jac.triu_(diagonal=1)
         jac_max, _ = jac.max(dim=1)
 
@@ -89,14 +95,16 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         
         # Only keep the top cfg.max_num_detections highest scores across all classes
         # scores, idx = scores.sort(0, descending=True)
+        
+        idx = np.argsort(scores)        
         scores = np.sort(scores)
-        idx = np.argsort(scores)
 
         idx = idx[:max_num_detections]
-        scores = scores[max_num_detections]
+        scores = scores[:max_num_detections]
 
         # classes = classes[idx]
         boxes = boxes[idx]
+        print("EXITING YOLACT NMS")
 
         return boxes, scores
 
@@ -203,8 +211,17 @@ def yolact_nms_decoder(y_pred,
                 
                 # CHANGING NMS FUNCTION
 
-                boxes = threshold_met[:,-4]
+                print("threshold_met: ", threshold_met)
+                print("threshold_met shape: ", threshold_met.shape)
+                
+
+                boxes = threshold_met[:,:-4]
                 scores = threshold_met[:,0]
+                print("boxes: ", boxes)
+                print("boxes shape: ", boxes.shape)
+                print("scores: ", scores)
+                print("scores shape: ", scores.shape)
+
                 # max_output_size = None
                 
                               
