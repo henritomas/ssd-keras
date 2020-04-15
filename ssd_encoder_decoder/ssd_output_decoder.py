@@ -114,11 +114,31 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
 
         # classes = classes[idx]
         boxes = boxes[idx]
+
+        print("boxes: ", boxes)
+        print("boxes shape: ", boxes.shape)
+        
+        print("scores: ", scores)
+        print("scores shape: ", scores.shape)
+
+        # scores = np.array(scores)
+        # print("scores: ", scores)
+        # print("scores shape: ", scores.shape)
+
+
+        # print(type(boxes),type(scores))
+
+        scores = scores.reshape(scores.shape[0], -1)
+
+        maxima = np.hstack((scores, boxes))
+        print("maxima:\n", maxima)
+
+
+
         print("EXITING YOLACT NMS")
 
 
-        maxima = np.concatenate((scores, boxes), axis=1)
-        print("maxima:\n", maxima)
+
 
         return maxima
 
