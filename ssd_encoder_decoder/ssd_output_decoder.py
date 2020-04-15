@@ -68,11 +68,21 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         # FIX THIS
         jac = iou(boxes, boxes)
         print("jac: ", jac)
-        jac.triu_(diagonal=1)
-        jac_max, _ = jac.max(dim=1)
+        print("jac_shape: ", jac.shape)
+        
+        # jac.triu_(diagonal=1)
+        jac = np.triu(jac, k=1)
+        print("jac_triu: ", jac)
+
+
+        # jac_max, _ = jac.max(dim=1)
+        jac_max = jac.max(1)
+        print("jac_max: ", jac_max)
+
 
         # Now just filter out the ones higher than the threshold
         keep = (jac_max <= iou_threshold)
+        print("iou_threshold: ", iou_threshold)
         print("keep: ", keep)
 
 
@@ -106,7 +116,11 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         boxes = boxes[idx]
         print("EXITING YOLACT NMS")
 
-        return boxes, scores
+
+        maxima = np.concatenate((scores, boxes), axis=1)
+        print("maxima:\n", maxima)
+
+        return maxima
 
 def yolact_nms_decoder(y_pred,
                       confidence_thresh=0.01,
@@ -215,7 +229,7 @@ def yolact_nms_decoder(y_pred,
                 print("threshold_met shape: ", threshold_met.shape)
                 
 
-                boxes = threshold_met[:,:-4]
+                boxes = threshold_met[:,-4:]
                 scores = threshold_met[:,0]
                 print("boxes: ", boxes)
                 print("boxes shape: ", boxes.shape)
@@ -229,11 +243,11 @@ def yolact_nms_decoder(y_pred,
                 # print("maxima: ", maxima)
                 # print("maxima shape: ", maxima.shape)
 
-                boxes, scores = yolact_nms(boxes, scores)
-                print("boxes: ", boxes)
-                print("boxes shape: ", boxes.shape)
-                print("scores: ", scores)
-                print("scores shape: ", scores.shape)
+                maxima = yolact_nms(boxes, scores)
+                # print("boxes: ", boxes)
+                # print("boxes shape: ", boxes.shape)
+                # print("scores: ", scores)
+                # print("scores shape: ", scores.shape)
 
 
 
