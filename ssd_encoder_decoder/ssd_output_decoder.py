@@ -291,8 +291,8 @@ def yolact_nms_decoder(y_pred,
 
 
 
-def adrian_nms(boxes, overlapThresh=0.45):
-    print("STARTING ADRIAN NMS")
+def mal_nms(boxes, overlapThresh=0.45):
+    print("STARTING Mal NMS")
 	# if there are no boxes, return an empty list
     if len(boxes) == 0:
         return []
@@ -364,11 +364,11 @@ def adrian_nms(boxes, overlapThresh=0.45):
 	# return only the bounding boxes that were picked using the
 	# integer data type
 	# return boxes[pick]
-    print("EXITING ADRIAN NMS")
+    print("EXITING Mal NMS")
     return boxes[pick]
     # return boxes[pick].astype("int")
 
-def adrian_nms_decoder(y_pred,
+def mal_nms_decoder(y_pred,
                       confidence_thresh=0.3,
                       iou_threshold=0.45,
                       top_k=200,
@@ -472,21 +472,17 @@ def adrian_nms_decoder(y_pred,
             print("threshold_met: ", threshold_met)
             print("threshold_met shape: ", threshold_met.shape)
             if threshold_met.shape[0] > 0: # If any boxes made the threshold...
-                
-                # CHANGING NMS FUNCTION
-                # maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                # print("maxima: ", maxima)
-                # print("maxima shape: ", maxima.shape)
+ 
 
-                maxima_adrian_nms = adrian_nms(threshold_met, iou_threshold) # ...perform NMS on them.
-                print("maxima_adrian_nms: ", maxima_adrian_nms)
-                print("maxima_adrian_nms shape: ", maxima_adrian_nms.shape)
+                maxima_mal_nms = mal_nms(threshold_met, iou_threshold) # ...perform NMS on them.
+                print("maxima_mal_nms: ", maxima_mal_nms)
+                print("maxima_mal_nms shape: ", maxima_mal_nms.shape)
 
 
 
-                maxima_output = np.zeros((maxima_adrian_nms.shape[0], maxima_adrian_nms.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
+                maxima_output = np.zeros((maxima_mal_nms.shape[0], maxima_mal_nms.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
                 maxima_output[:,0] = class_id # Write the class ID to the first column...
-                maxima_output[:,1:] = maxima_adrian_nms # ...and write the maxima to the other columns...
+                maxima_output[:,1:] = maxima_mal_nms # ...and write the maxima to the other columns...
                 pred.append(maxima_output) # ...and append the maxima for this class to the list of maxima for this batch item.
         # Once we're through with all classes, keep only the `top_k` maxima with the highest scores
         if pred: # If there are any predictions left after confidence-thresholding...
@@ -701,7 +697,6 @@ def decode_detections(y_pred,
                 
                 # CHANGING NMS FUNCTION
                 maxima = _greedy_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
-                # maxima = adrian_nms(threshold_met, iou_threshold=iou_threshold, coords='corners', border_pixels=border_pixels) # ...perform NMS on them.
                 
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
