@@ -8,13 +8,11 @@ import tensorflow.keras.backend as K
 
 
 #from models.depthwise_conv2d import DepthwiseConvolution2D
-#from models.mobilenet_v1 import mobilenet
+from models.mobilenet_v1 import mobilenet
 
 from keras_layers.tensorflow_keras_layer_AnchorBoxes import AnchorBoxes
 from keras_layers.tensorflow_keras_layer_DecodeDetections import DecodeDetections
 from keras_layers.tensorflow_keras_layer_DecodeDetectionsFast import DecodeDetectionsFast
-
-from tensorflow.keras.applications import MobileNet
 
 def ssd_300(mode,
             image_size,
@@ -127,11 +125,7 @@ def ssd_300(mode,
     #                name='input_channel_swap')(x1)
 
 
-    #conv4_3_norm , fc7 ,test= mobilenet(input_tensor=x1)
-    mobilenet = MobileNet(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
-    FeatureExtractor = Model(inputs=mobilenet.input, outputs=[mobilenet.get_layer('conv_dw_11_relu').output, mobilenet.get_layer('conv_dw_13_relu').output])
-
-    conv4_3_norm, fc7 = FeatureExtractor(x1)
+    conv4_3_norm , fc7 ,test= mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1)
 
     print ("conv11 shape: ", conv4_3_norm.shape)
     print ("conv13 shape: ", fc7.shape)
@@ -326,22 +320,40 @@ def ssd_300(mode,
     # Output shape of `predictions`: (batch, n_boxes_total, n_classes + 4 + 8)
     predictions = Concatenate(axis=2, name='predictions')([mbox_conf_softmax, mbox_loc, mbox_priorbox])
 
-    model = Model(inputs=x, outputs=predictions)
-    # return model
-
-    if mode == 'inference':
-        print ('in inference mode')
-        decoded_predictions = DecodeDetectionsFast(confidence_thresh=0.01,
-                                                   iou_threshold=0.45,
-                                                   top_k=100,
-                                                   nms_max_output_size=100,
-                                                   coords='centroids',
+    if mode == 'training':
+        model = Model(inputs=x, outputs=predictions)
+    elif mode == 'inference':
+        decoded_predictions = DecodeDetections(confidence_thresh=confidence_thresh,
+                                               iou_threshold=iou_threshold,
+                                               top_k=top_k,
+                                               nms_max_output_size=nms_max_output_size,
+                                               coords=coords,
+                                               normalize_coords=normalize_coords,
+                                               img_height=img_height,
+                                               img_width=img_width,
+                                               name='decoded_predictions')(predictions)
+        model = Model(inputs=x, outputs=decoded_predictions)
+    elif mode == 'inference_fast':
+        decoded_predictions = DecodeDetectionsFast(confidence_thresh=confidence_thresh,
+                                                   iou_threshold=iou_threshold,
+                                                   top_k=top_k,
+                                                   nms_max_output_size=nms_max_output_size,
+                                                   coords=coords,
                                                    normalize_coords=normalize_coords,
                                                    img_height=img_height,
                                                    img_width=img_width,
                                                    name='decoded_predictions')(predictions)
         model = Model(inputs=x, outputs=decoded_predictions)
     else:
-        print ('in training mode')
+        raise ValueError("`mode` must be one of 'training', 'inference' or 'inference_fast', but received '{}'.".format(mode))
 
-    return model
+    if return_predictor_sizes:
+        predictor_sizes = np.array([conv4_3_norm_mbox_conf._keras_shape[1:3],
+                                     fc7_mbox_conf._keras_shape[1:3],
+                                     conv6_2_mbox_conf._keras_shape[1:3],
+                                     conv7_2_mbox_conf._keras_shape[1:3],
+                                     conv8_2_mbox_conf._keras_shape[1:3],
+                                     conv9_2_mbox_conf._keras_shape[1:3]])
+        return model, predictor_sizes
+    else:
+        return model
