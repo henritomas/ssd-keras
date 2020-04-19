@@ -125,7 +125,7 @@ def ssd_300(mode,
     #                name='input_channel_swap')(x1)
 
 
-    conv4_3_norm , fc7 ,test= mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1)
+    conv4_3_norm , fc7 = mobilenet(input_tensor=x1, alpha=1.0, depth_multiplier=1)
 
     print ("conv11 shape: ", conv4_3_norm.shape)
     print ("conv13 shape: ", fc7.shape)
