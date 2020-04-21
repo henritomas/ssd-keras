@@ -289,18 +289,18 @@ def yolact_nms_decoder(y_pred,
 
 
 
-def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
+def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=1):
     """
     py_cpu_softnms
     :param dets:   boexs 坐标矩阵 format [y1, x1, y2, x2]
     :param sc:     每个 boxes 对应的分数
-    :param Nt:     iou 交叠门限
+    :param Nt:     iou 交叠门限 overlap threshold
     :param sigma:  使用 gaussian 函数的方差
     :param thresh: 最后的分数门限
     :param method: 使用的方法
     :return:       留下的 boxes 的 index
     """
-
+    print("ENTERING SOFT NMS")
     # indexes concatenate boxes with the last column
     N = dets.shape[0]
     indexes = np.array([np.arange(N)])
@@ -309,27 +309,52 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
 
 
     # the order of boxes coordinate is [y1,x1,y2,x2]
+
     y1 = dets[:, 1]
     x1 = dets[:, 0]
     y2 = dets[:, 3]
     x2 = dets[:, 2]
+    print("x1:" , x1)
+    print("x2:" , x2)
+    print("y1:" , y1)
+    print("y2:" , y2)
+    print("sc: ", sc)
+    conf = sc.copy()
     scores = sc
+    print("scores:" , scores)
+
     areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    print("areas:" , areas)
 
     for i in range(N):
+        print("\nSOFT NMS LOOP ", i)
         # intermediate parameters for later parameters exchange
         tBD = dets[i, :].copy()
-        tscore = scores[i].copy()
-        tarea = areas[i].copy()
-        pos = i + 1
+        print("tBD", i, ": " , tBD)
 
-        #
+        tscore = scores[i].copy()
+        print("tscore", i, ": " , tscore)
+
+        tarea = areas[i].copy()
+        print("tarea", i, ": " , tarea)
+        
+        pos = i + 1
+        print("pos:" , pos)
+
         if i != N-1:
             maxscore = np.max(scores[pos:], axis=0)
             maxpos = np.argmax(scores[pos:], axis=0)
         else:
             maxscore = scores[-1]
             maxpos = 0
+        print("maxscore:" , maxscore)
+        print("maxpos:" , maxpos)
+        print("tscore:" , tscore)
+        
+        print("dets: ", dets)
+
+
+        # SORT THE DETECTIONS
         if tscore < maxscore:
             dets[i, :] = dets[maxpos + i + 1, :]
             dets[maxpos + i + 1, :] = tBD
@@ -342,6 +367,9 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
             areas[i] = areas[maxpos + i + 1]
             areas[maxpos + i + 1] = tarea
             tarea = areas[i]
+        print("dets: ", dets)
+
+
 
         # IoU calculate
         xx1 = np.maximum(dets[i, 0], dets[pos:, 0])
@@ -353,6 +381,8 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
         h = np.maximum(0.0, yy2 - yy1 + 1)
         inter = w * h
         ovr = inter / (areas[i] + areas[pos:] - inter)
+        print("ovr ", i, ": " , ovr)
+
 
         # Three methods: 1.linear 2.gaussian 3.original NMS
         if method == 1:  # linear
@@ -363,19 +393,43 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
         else:  # original NMS
             weight = np.ones(ovr.shape)
             weight[ovr > Nt] = 0
-
+        print("scores[pos:] ", scores[pos:])
         scores[pos:] = weight * scores[pos:]
 
     # select the boxes and keep the corresponding indexes
     print("dets[:, 4]: ", dets[:, 4])
     
+    print("scores: ", scores)
+    print("scores.shape: ", scores.shape)
+
+
     inds = dets[:, 4][scores > thresh]
     print("inds: ", inds)
     
-    keep = inds.astype(int)
-    print("scores: ", scores)
+    inds = inds.astype(int)
+    print("inds: ", inds)
+    conf = conf[inds]
+
+    print("conf: ", conf)
+    print("conf.shape: ", conf.shape)
+
+
+
+    conf = conf.reshape(conf.shape[0], -1)
+    print("conf: ", conf)
+    print("conf.shape: ", conf.shape)
+
+
+    dets = dets[inds, :4]
+    print("dets: ", dets)
+    print("dets_shape: ", dets.shape)
+
+
+    keep = np.hstack((conf, dets))
     print("keep: ", keep)
     print("keep_shape: ", keep.shape)
+
+    print("EXITING SOFT NMS")
 
     return keep
 
