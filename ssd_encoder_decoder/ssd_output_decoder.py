@@ -305,6 +305,8 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
     N = dets.shape[0]
     indexes = np.array([np.arange(N)])
     dets = np.concatenate((dets, indexes.T), axis=1)
+    print("dets: ", dets)
+
 
     # the order of boxes coordinate is [y1,x1,y2,x2]
     y1 = dets[:, 1]
@@ -342,10 +344,10 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
             tarea = areas[i]
 
         # IoU calculate
-        xx1 = np.maximum(dets[i, 1], dets[pos:, 1])
-        yy1 = np.maximum(dets[i, 0], dets[pos:, 0])
-        xx2 = np.minimum(dets[i, 3], dets[pos:, 3])
-        yy2 = np.minimum(dets[i, 2], dets[pos:, 2])
+        xx1 = np.maximum(dets[i, 0], dets[pos:, 0])
+        yy1 = np.maximum(dets[i, 1], dets[pos:, 1])
+        xx2 = np.minimum(dets[i, 2], dets[pos:, 2])
+        yy2 = np.minimum(dets[i, 3], dets[pos:, 3])
 
         w = np.maximum(0.0, xx2 - xx1 + 1)
         h = np.maximum(0.0, yy2 - yy1 + 1)
@@ -365,7 +367,11 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
         scores[pos:] = weight * scores[pos:]
 
     # select the boxes and keep the corresponding indexes
+    print("dets[:, 4]: ", dets[:, 4])
+    
     inds = dets[:, 4][scores > thresh]
+    print("inds: ", inds)
+    
     keep = inds.astype(int)
     print("scores: ", scores)
     print("keep: ", keep)
