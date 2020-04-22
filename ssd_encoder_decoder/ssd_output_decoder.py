@@ -714,26 +714,20 @@ def tf_nms_decoder(y_pred,
                 print("selected_indices", selected_indices.eval())
 
                 selected_boxes = tf.gather(boxes, selected_indices)
-                print("selected_boxes", selected_boxes.eval())
+                selected_boxes = selected_boxes.eval()
+                print("selected_boxes", selected_boxes)
+
 
                 selected_scores = tf.gather(scores, selected_indices)
-                print("selected_scores", selected_scores.eval())
+                selected_scores = selected_scores.eval()
+                print("selected_scores", selected_scores)
+
+                selected_scores = selected_scores.reshape(selected_scores.shape[0], -1)
+
+                maxima = np.hstack((selected_scores, selected_boxes))
+
 
                 sess.close()
-
-
-
-
-
-
-
-                maxima = tf.concat([selected_scores, selected_boxes], 1)
-
-                # print("boxes: ", boxes)
-                # print("boxes shape: ", boxes.shape)
-                # print("scores: ", scores)
-                # print("scores shape: ", scores.shape)
-
 
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
