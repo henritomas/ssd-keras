@@ -289,7 +289,7 @@ def yolact_nms_decoder(y_pred,
 
 
 
-def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=1):
+def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
     """
     py_cpu_softnms
     :param dets:   boexs 坐标矩阵 format [y1, x1, y2, x2]
