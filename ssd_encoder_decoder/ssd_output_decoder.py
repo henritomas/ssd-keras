@@ -404,20 +404,27 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
 
 
     inds = dets[:, 4][scores > thresh]
-    print("inds: ", inds)
-    
+    print("inds: ", inds)    
     inds = inds.astype(int)
     print("inds: ", inds)
-    conf = conf[inds]
-
-    print("conf: ", conf)
-    print("conf.shape: ", conf.shape)
 
 
+    # GETTING SCORES
 
-    conf = conf.reshape(conf.shape[0], -1)
-    print("conf: ", conf)
-    print("conf.shape: ", conf.shape)
+    # conf = conf[inds]
+    # conf = conf.reshape(conf.shape[0], -1)
+    # print("conf: ", conf)
+    # print("conf.shape: ", conf.shape)
+
+    scores = scores[inds]
+    scores = scores.reshape(scores.shape[0], -1)
+    print("scores: ", scores)
+    print("scores.shape: ", scores.shape)
+
+
+
+
+
 
 
     dets = dets[inds, :4]
@@ -425,7 +432,7 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.001, method=2):
     print("dets_shape: ", dets.shape)
 
 
-    keep = np.hstack((conf, dets))
+    keep = np.hstack((scores, dets))
     print("keep: ", keep)
     print("keep_shape: ", keep.shape)
 
