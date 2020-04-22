@@ -693,16 +693,41 @@ def tf_nms_decoder(y_pred,
                 boxes = threshold_met[:,-4:]
                 scores = threshold_met[:,0]
                 print("boxes: ", boxes)
-                print("boxes shape: ", boxes.shape)
+                print("boxes shape: ", boxes.shape, boxes.dtype)
                 print("scores: ", scores)
-                print("scores shape: ", scores.shape)
+                print("scores shape: ", scores.shape, scores.dtype)
+
+
+
 
                 max_output_size = 20
+                tf_boxes = tf.convert_to_tensor(boxes, np.float32)
+                print("tf_boxes", tf_boxes)
+                tf_scores = tf.convert_to_tensor(scores, np.float32)
+                print("tf_scores", tf_scores)
+
+
+                selected_indices = tf.image.non_max_suppression(tf_boxes,tf_scores,max_output_size,
+                iou_threshold=0.5,score_threshold=float('-inf'))
                 
-                selected_indices = tf.image.non_max_suppression(boxes,scores,max_output_size,iou_threshold=0.5,score_threshold=float('-inf'))
+                sess = tf.InteractiveSession()  
+                print("selected_indices", selected_indices.eval())
+
                 selected_boxes = tf.gather(boxes, selected_indices)
+                print("selected_boxes", selected_boxes.eval())
+
                 selected_scores = tf.gather(scores, selected_indices)
-                maxima = tf.concatenate([selected_scores, selected_boxes], 1)
+                print("selected_scores", selected_scores.eval())
+
+                sess.close()
+
+
+
+
+
+
+
+                maxima = tf.concat([selected_scores, selected_boxes], 1)
 
                 # print("boxes: ", boxes)
                 # print("boxes shape: ", boxes.shape)
