@@ -29,61 +29,52 @@ import tensorflow as tf
 # import torch.nn.functional as F
 
 def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_threshold:bool=False):
-        print("ENTERING YOLACT NMS")
+        # print("ENTERING YOLACT NMS")
         max_num_detections = 100
 
         # scores, idx = scores.sort(1, descending=True)
-        print("inputted scores: ", scores)
+        # print("inputted scores: ", scores)
 
         idx = np.argsort(scores)
         scores = np.sort(scores)
         
         
-        print("sorted scores: ", scores)
-        print("sorted idx: ", idx)
+        # print("sorted scores: ", scores)
+        # print("sorted idx: ", idx)
     
 
         # FIX THIS
         idx = idx[:top_k]
         # idx = idx[:top_k].contiguous()
-        print("top_k idx: ", idx)
+        # print("top_k idx: ", idx)
 
     
         scores = scores[:top_k]
-        print("top_k scores: ", scores)
-
-        # # FIX THIS
-        # num_classes, num_dets = idx.size()
-        # print("num_classes: ", num_classes)
-        # print("num_dets: ", num_dets)
+        # print("top_k scores: ", scores)
 
 
-        # # FIX THIS
-        # boxes = boxes[idx.view(-1), :].view(num_classes, num_dets, 4)
+
         # print("boxes: ", boxes)
-
-
-        print("boxes: ", boxes)
 
         # FIX THIS
         jac = iou(boxes, boxes)
-        print("jac: ", jac)
-        print("jac_shape: ", jac.shape)
+        # print("jac: ", jac)
+        # print("jac_shape: ", jac.shape)
         
         # jac.triu_(diagonal=1)
         jac = np.triu(jac, k=1)
-        print("jac_triu: ", jac)
+        # print("jac_triu: ", jac)
 
 
         # jac_max, _ = jac.max(dim=1)
         jac_max = jac.max(1)
-        print("jac_max: ", jac_max)
+        # print("jac_max: ", jac_max)
 
 
         # Now just filter out the ones higher than the threshold
         keep = (jac_max <= iou_threshold)
-        print("iou_threshold: ", iou_threshold)
-        print("keep: ", keep)
+        # print("iou_threshold: ", iou_threshold)
+        # print("keep: ", keep)
 
 
         # We should also only keep detections over the confidence threshold, but at the cost of
@@ -115,11 +106,11 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         # classes = classes[idx]
         boxes = boxes[idx]
 
-        print("boxes: ", boxes)
-        print("boxes shape: ", boxes.shape)
+        # print("boxes: ", boxes)
+        # print("boxes shape: ", boxes.shape)
         
-        print("scores: ", scores)
-        print("scores shape: ", scores.shape)
+        # print("scores: ", scores)
+        # print("scores shape: ", scores.shape)
 
         # scores = np.array(scores)
         # print("scores: ", scores)
@@ -131,11 +122,11 @@ def yolact_nms(boxes, scores, iou_threshold:float=0.5, top_k:int=200, second_thr
         scores = scores.reshape(scores.shape[0], -1)
 
         maxima = np.hstack((scores, boxes))
-        print("maxima:\n", maxima)
+        # print("maxima:\n", maxima)
 
 
 
-        print("EXITING YOLACT NMS")
+        # print("EXITING YOLACT NMS")
 
 
 
@@ -245,16 +236,16 @@ def yolact_nms_decoder(y_pred,
                 
                 # CHANGING NMS FUNCTION
 
-                print("threshold_met: ", threshold_met)
-                print("threshold_met shape: ", threshold_met.shape)
+                # print("threshold_met: ", threshold_met)
+                # print("threshold_met shape: ", threshold_met.shape)
                 
 
                 boxes = threshold_met[:,-4:]
                 scores = threshold_met[:,0]
-                print("boxes: ", boxes)
-                print("boxes shape: ", boxes.shape)
-                print("scores: ", scores)
-                print("scores shape: ", scores.shape)
+                # print("boxes: ", boxes)
+                # print("boxes shape: ", boxes.shape)
+                # print("scores: ", scores)
+                # print("scores shape: ", scores.shape)
 
                 # max_output_size = None
                 
@@ -300,12 +291,12 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
     :param method: 使用的方法
     :return:       留下的 boxes 的 index
     """
-    print("ENTERING SOFT NMS")
+    # print("ENTERING SOFT NMS")
     # indexes concatenate boxes with the last column
     N = dets.shape[0]
     indexes = np.array([np.arange(N)])
     dets = np.concatenate((dets, indexes.T), axis=1)
-    print("dets: ", dets)
+    # print("dets: ", dets)
 
 
     # the order of boxes coordinate is [y1,x1,y2,x2]
@@ -314,32 +305,32 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
     x1 = dets[:, 0]
     y2 = dets[:, 3]
     x2 = dets[:, 2]
-    print("x1:" , x1)
-    print("x2:" , x2)
-    print("y1:" , y1)
-    print("y2:" , y2)
-    print("sc: ", sc)
-    conf = sc.copy()
+    # print("x1:" , x1)
+    # print("x2:" , x2)
+    # print("y1:" , y1)
+    # print("y2:" , y2)
+    # print("sc: ", sc)
+    # conf = sc.copy()
     scores = sc
-    print("scores:" , scores)
+    # print("scores:" , scores)
 
     areas = (x2 - x1 + 1) * (y2 - y1 + 1)
-    print("areas:" , areas)
+    # print("areas:" , areas)
 
     for i in range(N):
-        print("\nSOFT NMS LOOP ", i)
+        # print("\nSOFT NMS LOOP ", i)
         # intermediate parameters for later parameters exchange
         tBD = dets[i, :].copy()
-        print("tBD", i, ": " , tBD)
+        # print("tBD", i, ": " , tBD)
 
         tscore = scores[i].copy()
-        print("tscore", i, ": " , tscore)
+        # print("tscore", i, ": " , tscore)
 
         tarea = areas[i].copy()
-        print("tarea", i, ": " , tarea)
+        # print("tarea", i, ": " , tarea)
         
         pos = i + 1
-        print("pos:" , pos)
+        # print("pos:" , pos)
 
         if i != N-1:
             maxscore = np.max(scores[pos:], axis=0)
@@ -347,11 +338,11 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
         else:
             maxscore = scores[-1]
             maxpos = 0
-        print("maxscore:" , maxscore)
-        print("maxpos:" , maxpos)
-        print("tscore:" , tscore)
+        # print("maxscore:" , maxscore)
+        # print("maxpos:" , maxpos)
+        # print("tscore:" , tscore)
         
-        print("dets: ", dets)
+        # print("dets: ", dets)
 
 
         # SORT THE DETECTIONS
@@ -367,7 +358,7 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
             areas[i] = areas[maxpos + i + 1]
             areas[maxpos + i + 1] = tarea
             tarea = areas[i]
-        print("dets: ", dets)
+        # print("dets: ", dets)
 
 
 
@@ -381,7 +372,7 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
         h = np.maximum(0.0, yy2 - yy1 + 1)
         inter = w * h
         ovr = inter / (areas[i] + areas[pos:] - inter)
-        print("ovr ", i, ": " , ovr)
+        # print("ovr ", i, ": " , ovr)
 
 
         # Three methods: 1.linear 2.gaussian 3.original NMS
@@ -393,20 +384,20 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
         else:  # original NMS
             weight = np.ones(ovr.shape)
             weight[ovr > Nt] = 0
-        print("scores[pos:] ", scores[pos:])
+        # print("scores[pos:] ", scores[pos:])
         scores[pos:] = weight * scores[pos:]
 
     # select the boxes and keep the corresponding indexes
-    print("dets[:, 4]: ", dets[:, 4])
+    # print("dets[:, 4]: ", dets[:, 4])
     
-    print("scores: ", scores)
-    print("scores.shape: ", scores.shape)
+    # print("scores: ", scores)
+    # print("scores.shape: ", scores.shape)
 
 
     inds = dets[:, 4][scores > thresh]
-    print("inds: ", inds)    
+    # print("inds: ", inds)    
     inds = inds.astype(int)
-    print("inds: ", inds)
+    # print("inds: ", inds)
 
 
     # GETTING SCORES
@@ -418,8 +409,8 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
 
     scores = scores[inds]
     scores = scores.reshape(scores.shape[0], -1)
-    print("scores: ", scores)
-    print("scores.shape: ", scores.shape)
+    # print("scores: ", scores)
+    # print("scores.shape: ", scores.shape)
 
 
 
@@ -428,15 +419,15 @@ def soft_nms(dets, sc, Nt=0.3, sigma=0.5, thresh=0.1, method=2):
 
 
     dets = dets[inds, :4]
-    print("dets: ", dets)
-    print("dets_shape: ", dets.shape)
+    # print("dets: ", dets)
+    # print("dets_shape: ", dets.shape)
 
 
     keep = np.hstack((scores, dets))
-    print("keep: ", keep)
-    print("keep_shape: ", keep.shape)
+    # print("keep: ", keep)
+    # print("keep_shape: ", keep.shape)
 
-    print("EXITING SOFT NMS")
+    # print("EXITING SOFT NMS")
 
     return keep
 
@@ -549,10 +540,10 @@ def soft_nms_decoder(y_pred,
 
                 boxes = threshold_met[:,-4:]
                 scores = threshold_met[:,0]
-                print("boxes: ", boxes)
-                print("boxes shape: ", boxes.shape)
-                print("scores: ", scores)
-                print("scores shape: ", scores.shape)
+                # print("boxes: ", boxes)
+                # print("boxes shape: ", boxes.shape)
+                # print("scores: ", scores)
+                # print("scores shape: ", scores.shape)
 
                 # max_output_size = None
                 
@@ -563,7 +554,6 @@ def soft_nms_decoder(y_pred,
                 # print("boxes shape: ", boxes.shape)
                 # print("scores: ", scores)
                 # print("scores shape: ", scores.shape)
-
 
 
                 maxima_output = np.zeros((maxima.shape[0], maxima.shape[1] + 1)) # Expand the last dimension by one element to have room for the class ID. This is now an arrray of shape `[n_boxes, 6]`
@@ -692,35 +682,35 @@ def tf_nms_decoder(y_pred,
 
                 boxes = threshold_met[:,-4:]
                 scores = threshold_met[:,0]
-                print("boxes: ", boxes)
-                print("boxes shape: ", boxes.shape, boxes.dtype)
-                print("scores: ", scores)
-                print("scores shape: ", scores.shape, scores.dtype)
+                # print("boxes: ", boxes)
+                # print("boxes shape: ", boxes.shape, boxes.dtype)
+                # print("scores: ", scores)
+                # print("scores shape: ", scores.shape, scores.dtype)
 
 
 
 
                 max_output_size = 20
                 tf_boxes = tf.convert_to_tensor(boxes, np.float32)
-                print("tf_boxes", tf_boxes)
+                # print("tf_boxes", tf_boxes)
                 tf_scores = tf.convert_to_tensor(scores, np.float32)
-                print("tf_scores", tf_scores)
+                # print("tf_scores", tf_scores)
 
 
                 selected_indices = tf.image.non_max_suppression(tf_boxes,tf_scores,max_output_size,
                 iou_threshold=0.5,score_threshold=float('-inf'))
                 
                 sess = tf.InteractiveSession()  
-                print("selected_indices", selected_indices.eval())
+                # print("selected_indices", selected_indices.eval())
 
                 selected_boxes = tf.gather(boxes, selected_indices)
                 selected_boxes = selected_boxes.eval()
-                print("selected_boxes", selected_boxes)
+                # print("selected_boxes", selected_boxes)
 
 
                 selected_scores = tf.gather(scores, selected_indices)
                 selected_scores = selected_scores.eval()
-                print("selected_scores", selected_scores)
+                # print("selected_scores", selected_scores)
 
                 selected_scores = selected_scores.reshape(selected_scores.shape[0], -1)
 
@@ -750,7 +740,7 @@ def tf_nms_decoder(y_pred,
 
 
 def mal_nms(boxes, overlapThresh=0.45):
-    print("STARTING Mal NMS")
+    # print("STARTING Mal NMS")
 	# if there are no boxes, return an empty list
     if len(boxes) == 0:
         return []
@@ -762,38 +752,38 @@ def mal_nms(boxes, overlapThresh=0.45):
     pick = []
 	# boxes [confidence, xmin, ymin, xmax, ymax]
 	# grab the coordinates of the bounding boxes
-    print("boxes: ", boxes)
+    # print("boxes: ", boxes)
     x1 = boxes[:,1]
     y1 = boxes[:,2]
     x2 = boxes[:,3]
     y2 = boxes[:,4]
-    print("x1:" , x1)
-    print("x2:" , x2)
-    print("y1:" , y1)
-    print("y2:" , y2)
+    # print("x1:" , x1)
+    # print("x2:" , x2)
+    # print("y1:" , y1)
+    # print("y2:" , y2)
 
 	# compute the area of the bounding boxes and sort the bounding
 	# boxes by the bottom-right y-coordinate of the bounding box
     area = (x2 - x1 + 1) * (y2 - y1 + 1)
-    print("area:" , area)
+    # print("area:" , area)
 
     probs = boxes[:,0]
 
     idxs = np.argsort(probs)
-    print("probs: ", probs)
+    # print("probs: ", probs)
 	# keep looping while some indexes still remain in the indexes
 	# list
     counter = 1
     while len(idxs) > 0:
 		# grab the last index in the indexes list and add the
 		# index value to the list of picked indexes
-        print("START", counter)
-        print("idxs: ", idxs)
+        # print("START", counter)
+        # print("idxs: ", idxs)
         last = len(idxs) - 1
         i = idxs[last]
-        print("i: ", i)
+        # print("i: ", i)
         pick.append(i)
-        print("pick: ", pick)
+        # print("pick: ", pick)
 		# find the largest (x, y) coordinates for the start of
 		# the bounding box and the smallest (x, y) coordinates
 		# for the end of the bounding box
@@ -801,28 +791,28 @@ def mal_nms(boxes, overlapThresh=0.45):
         yy1 = np.maximum(y1[i], y1[idxs[:last]])
         xx2 = np.minimum(x2[i], x2[idxs[:last]])
         yy2 = np.minimum(y2[i], y2[idxs[:last]])
-        print("xx1: ", xx1)
-        print("yy1: ", yy1)
-        print("xx2: ", xx2)
-        print("yy2: ", yy2)
+        # print("xx1: ", xx1)
+        # print("yy1: ", yy1)
+        # print("xx2: ", xx2)
+        # print("yy2: ", yy2)
 
 		# compute the width and height of the bounding box
         w = np.maximum(0, xx2 - xx1 + 1)
-        print("w:" , w)
+        # print("w:" , w)
         h = np.maximum(0, yy2 - yy1 + 1)
-        print("h:" , h)
+        # print("h:" , h)
 		# compute the ratio of overlap
         overlap = (w * h) / area[idxs[:last]]
-        print("overlap: ", overlap)
+        # print("overlap: ", overlap)
 		# delete all indexes from the index list that have
         idxs = np.delete(idxs, np.concatenate(([last],
             np.where(overlap > overlapThresh)[0])))
-        print("END", counter, "\n")
+        # print("END", counter, "\n")
         counter += 1
 	# return only the bounding boxes that were picked using the
 	# integer data type
 	# return boxes[pick]
-    print("EXITING Mal NMS")
+    # print("EXITING Mal NMS")
     return boxes[pick]
     # return boxes[pick].astype("int")
 
@@ -914,27 +904,27 @@ def mal_nms_decoder(y_pred,
     if normalize_coords:
         y_pred_decoded_raw[:,:,[-4,-2]] *= img_width # Convert xmin, xmax back to absolute coordinates
         y_pred_decoded_raw[:,:,[-3,-1]] *= img_height # Convert ymin, ymax back to absolute coordinates
-    print("y_pred_decoded_raw shape: ", y_pred_decoded_raw.shape)
+    # print("y_pred_decoded_raw shape: ", y_pred_decoded_raw.shape)
     # 3: Apply confidence thresholding and non-maximum suppression per class
 
     n_classes = y_pred_decoded_raw.shape[-1] - 4 # The number of classes is the length of the last axis minus the four box coordinates
-    print("n_classes: ", n_classes)
+    # print("n_classes: ", n_classes)
     y_pred_decoded = [] # Store the final predictions in this list
     for batch_item in y_pred_decoded_raw: # `batch_item` has shape `[n_boxes, n_classes + 4 coords]`
-        print("batch_item: ", batch_item)
-        print("batch_item shape: ", batch_item.shape)
+        # print("batch_item: ", batch_item)
+        # print("batch_item shape: ", batch_item.shape)
         pred = [] # Store the final predictions for this batch item here
         for class_id in range(1, n_classes): # For each class except the background class (which has class ID 0)...
             single_class = batch_item[:,[class_id, -4, -3, -2, -1]] # ...keep only the confidences for that class, making this an array of shape `[n_boxes, 5]` and...
             threshold_met = single_class[single_class[:,0] > confidence_thresh] # ...keep only those boxes with a confidence above the set threshold.
-            print("threshold_met: ", threshold_met)
-            print("threshold_met shape: ", threshold_met.shape)
+            # print("threshold_met: ", threshold_met)
+            # print("threshold_met shape: ", threshold_met.shape)
             if threshold_met.shape[0] > 0: # If any boxes made the threshold...
  
 
                 maxima_mal_nms = mal_nms(threshold_met, iou_threshold) # ...perform NMS on them.
-                print("maxima_mal_nms: ", maxima_mal_nms)
-                print("maxima_mal_nms shape: ", maxima_mal_nms.shape)
+                # print("maxima_mal_nms: ", maxima_mal_nms)
+                # print("maxima_mal_nms shape: ", maxima_mal_nms.shape)
 
 
 
@@ -996,9 +986,9 @@ def greedy_nms(y_pred_decoded, iou_threshold=0.45, coords='corners', border_pixe
         maxima = [] # This is where we store the boxes that make it through the non-maximum suppression
         while boxes_left.shape[0] > 0: # While there are still boxes left to compare...
             maximum_index = np.argmax(boxes_left[:,1]) # ...get the index of the next box with the highest confidence...
-            print("Maximum index:", maximum_index, maximum_index.shape())
+            # print("Maximum index:", maximum_index, maximum_index.shape())
             maximum_box = np.copy(boxes_left[maximum_index]) # ...copy that box and...
-            print("Maximum box:", maximum_box, maximum_box.shape())
+            # print("Maximum box:", maximum_box, maximum_box.shape())
             maxima.append(maximum_box) # ...append it to `maxima` because we'll definitely keep it
             boxes_left = np.delete(boxes_left, maximum_index, axis=0) # Now remove the maximum box from `boxes_left`
             if boxes_left.shape[0] == 0: break # If there are no boxes left after this step, break. Otherwise...
@@ -1013,26 +1003,26 @@ def _greedy_nms(predictions, iou_threshold=0.45, coords='corners', border_pixels
     The same greedy non-maximum suppression algorithm as above, but slightly modified for use as an internal
     function for per-class NMS in `decode_detections()`.
     '''
-    print("ENTERING GREEDY NMS")
+    # print("ENTERING GREEDY NMS")
     boxes_left = np.copy(predictions)
     maxima = [] # This is where we store the boxes that make it through the non-maximum suppression
     counter = 1
     while boxes_left.shape[0] > 0: # While there are still boxes left to compare...
-        print("START loop greedy", counter)
-        print("boxes_left:" , boxes_left)
-        print("boxes_left shape: ", boxes_left.shape)
+        # print("START loop greedy", counter)
+        # print("boxes_left:" , boxes_left)
+        # print("boxes_left shape: ", boxes_left.shape)
         maximum_index = np.argmax(boxes_left[:,0]) # ...get the index of the next box with the highest confidence...
-        print("Maximum index:", maximum_index, maximum_index.shape)
+        # print("Maximum index:", maximum_index, maximum_index.shape)
         maximum_box = np.copy(boxes_left[maximum_index]) # ...copy that box and...
-        print("Maximum box:", maximum_box, maximum_box.shape)
+        # print("Maximum box:", maximum_box, maximum_box.shape)
         maxima.append(maximum_box) # ...append it to `maxima` because we'll definitely keep it
         boxes_left = np.delete(boxes_left, maximum_index, axis=0) # Now remove the maximum box from `boxes_left`
         if boxes_left.shape[0] == 0: break # If there are no boxes left after this step, break. Otherwise...
         similarities = iou(boxes_left[:,1:], maximum_box[1:], coords=coords, mode='element-wise', border_pixels=border_pixels) # ...compare (IoU) the other left over boxes to the maximum box...
         boxes_left = boxes_left[similarities <= iou_threshold] # ...so that we can remove the ones that overlap too much with the maximum box
-        print("END loop greedy", counter, "\n")
+        # print("END loop greedy", counter, "\n")
         counter += 1
-    print("EXITING GREEDY NMS")
+    # print("EXITING GREEDY NMS")
     return np.array(maxima)
 
 def _greedy_nms2(predictions, iou_threshold=0.45, coords='corners', border_pixels='half'):
