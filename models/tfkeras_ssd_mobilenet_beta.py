@@ -149,13 +149,13 @@ def ssd_300(mode,
 
     conv6_1 = Conv2D(256, (1, 1), padding='same', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv14_1', use_bias=False)(fc7)
-    conv6_1 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv14_1/bn')(conv6_1)
+    conv6_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv14_1/bn')(conv6_1)
     conv6_1 = Activation('relu', name='relu_conv6_1')(conv6_1)
 
     conv6_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv6_padding')(conv6_1)
     conv6_2 = Conv2D(512, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv14_2', use_bias=False)(conv6_1)
-    conv6_2 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv14_2/bn')(conv6_2)
+    conv6_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv14_2/bn')(conv6_2)
     conv6_2 = Activation('relu', name='relu_conv6_2')(conv6_2)
 
     print ('conv14 shape', conv6_2.shape)
@@ -164,13 +164,13 @@ def ssd_300(mode,
 
     conv7_1 = Conv2D(128, (1, 1), padding='same', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv15_1',use_bias=False)(conv6_2)
-    conv7_1 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv15_1/bn')(conv7_1)
+    conv7_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv15_1/bn')(conv7_1)
     conv7_1 = Activation('relu', name='relu_conv7_1')(conv7_1)
 
     conv7_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv7_padding')(conv7_1)
     conv7_2 = Conv2D(256, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv15_2',use_bias=False)(conv7_1)
-    conv7_2 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv15_2/bn')(conv7_2)
+    conv7_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv15_2/bn')(conv7_2)
     conv7_2 = Activation('relu', name='relu_conv7_2')(conv7_2)
 
 
@@ -178,24 +178,24 @@ def ssd_300(mode,
 
     conv8_1 = Conv2D(128, (1, 1), padding='same', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv16_1',use_bias=False)(conv7_2)
-    conv8_1 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv16_1/bn')(conv8_1)
+    conv8_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv16_1/bn')(conv8_1)
     conv8_1 = Activation('relu', name='relu_conv8_1')(conv8_1)
     conv8_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv8_padding')(conv8_1)
     conv8_2 = Conv2D(256, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv16_2',use_bias=False)(conv8_1)
-    conv8_2 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv16_2/bn')(conv8_2)
+    conv8_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv16_2/bn')(conv8_2)
     conv8_2 = Activation('relu', name='relu_conv8_2')(conv8_2)
 
     print ('conv16 shape', conv8_2.shape)
     
     conv9_1 = Conv2D(64, (1, 1), padding='same', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv17_1',use_bias=False)(conv8_2)
-    conv9_1 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv17_1/bn')(conv9_1)
+    conv9_1 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv17_1/bn')(conv9_1)
     conv9_1 = Activation('relu', name='relu_conv9_1')(conv9_1)
     conv9_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv9_padding')(conv9_1)
     conv9_2 = Conv2D(128, (3, 3), strides=(2, 2), padding='valid', kernel_initializer='he_normal',
         kernel_regularizer=l2(l2_reg), name='conv17_2',use_bias=False)(conv9_1)
-    conv9_2 = BatchNormalization( momentum=0.99, epsilon=0.00001, name='conv17_2/bn')(conv9_2)
+    conv9_2 = BatchNormalization(axis=3, momentum=0.99, epsilon=0.00001, name='conv17_2/bn')(conv9_2)
     conv9_2 = Activation('relu', name='relu_conv9_2')(conv9_2)
 
     print ('conv17 shape', conv9_2.shape)
