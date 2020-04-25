@@ -108,7 +108,22 @@ def ssd_300(mode,
     if offsets is None:
         offsets = [None] * n_predictor_layers
 
+    ############################################################################
+    # Define functions for the Lambda layers below.
+    ############################################################################
 
+    def identity_layer(tensor):
+        return tensor
+
+    def input_mean_normalization(tensor):
+        return tensor - np.array(subtract_mean)
+
+    def input_stddev_normalization(tensor):
+        return tensor / np.array(divide_by_stddev)
+        
+    ############################################################################
+    # Build the network.
+    ############################################################################
 
     x = Input(shape=(img_height, img_width, img_channels))
 
