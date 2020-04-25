@@ -28,6 +28,8 @@ from keras_layers.tensorflow_keras_layer_L2Normalization import L2Normalization
 from keras_layers.tensorflow_keras_layer_DecodeDetections import DecodeDetections
 from keras_layers.tensorflow_keras_layer_DecodeDetectionsFast import DecodeDetectionsFast
 
+from tensorflow.keras.applications import MobileNet
+
 def ssd_300(image_size,
             n_classes,
             mode='training',
