@@ -51,14 +51,14 @@ def jaccard(box_a, box_b, iscrowd:bool=False):
         box_a = box_a[None, ...]
         box_b = box_b[None, ...]
 
-    intersect_mins = tf.maximum(tf.expand_dims(box_a[...,:2],2), tf.expand_dims(box_b[...,:2],1))
-    intersect_maxs = tf.minimum(tf.expand_dims(box_a[...,2:],2), tf.expand_dims(box_b[...,2:],1))
+    intersect_mins = tf.maximum(tf.compat.v1.expand_dims(box_a[...,:2],2), tf.compat.v1.expand_dims(box_b[...,:2],1))
+    intersect_maxs = tf.minimum(tf.compat.v1.expand_dims(box_a[...,2:],2), tf.compat.v1.expand_dims(box_b[...,2:],1))
     intersect_wh = tf.maximum(intersect_maxs - intersect_mins, 0.)
     inter = intersect_wh[..., 0] * intersect_wh[..., 1]
 
-    area_a = tf.broadcast_to(tf.expand_dims((box_a[:, :, 2]-box_a[:, :, 0]) *
+    area_a = tf.broadcast_to(tf.compat.v1.expand_dims((box_a[:, :, 2]-box_a[:, :, 0]) *
               (box_a[:, :, 3]-box_a[:, :, 1]),2),tf.shape(inter))  # [A,B]
-    area_b = tf.broadcast_to(tf.expand_dims((box_b[:, :, 2]-box_b[:, :, 0]) *
+    area_b = tf.broadcast_to(tf.compat.v1.expand_dims((box_b[:, :, 2]-box_b[:, :, 0]) *
               (box_b[:, :, 3]-box_b[:, :, 1]),1),tf.shape(inter))  # [A,B]
     union = tf.reshape(area_a,tf.shape(inter)) + tf.reshape(area_b,tf.shape(inter)) - inter
 
@@ -236,8 +236,8 @@ def tf_yolact_decoder(y_pred,
                 # tf_scores = tf.convert_to_tensor(scores, np.float32)
                 # print("tf_scores", tf_scores)
 
-
-                maxima = tf_yolact_nms(boxes,scores,max_output_size,iou_threshold=0.5,score_threshold=float('-inf'),top_k=200):
+                max_output_size = 20
+                maxima = tf_yolact_nms(boxes,scores,max_output_size,iou_threshold=0.5,score_threshold=float('-inf'),top_k=200)
                 
 
 
