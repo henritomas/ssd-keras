@@ -1,6 +1,5 @@
 # In this Repo:
 ## SSD-[MobileNetV1, VGG] in tensorflow.keras v1.15
-## Faster Object Detection with Binarized MobileNetV1-SSD (implemented in larq)(in progress 5/2/2020)
 ---
 ### Contents
 
