@@ -1,6 +1,6 @@
 # In this Repo:
 ## SSD-[MobileNetV1, VGG] in tensorflow.keras v1.15
-## Faster Object Detection with Binarized MobileNetV1-SSD (implemented in larq)
+## Faster Object Detection with Binarized MobileNetV1-SSD (implemented in larq)(in progress 5/2/2020)
 ---
 ### Contents
 
@@ -18,56 +18,27 @@
 
 ### Overview
 
-This is a Keras port of the SSD model architecture introduced by Wei Liu et al. in the paper [SSD: Single Shot MultiBox Detector](https://arxiv.org/abs/1512.02325).
-
-Ports of the trained weights of all the original models are provided below. This implementation is accurate, meaning that both the ported weights and models trained from scratch produce the same mAP values as the respective models of the original Caffe implementation (see performance section below).
-
-The main goal of this project is to create an SSD implementation that is well documented for those who are interested in a low-level understanding of the model. The provided tutorials, documentation and detailed comments hopefully make it a bit easier to dig into the code and adapt or build upon the model than with most other implementations out there (Keras or otherwise) that provide little to no documentation and comments.
+A fork of the original keras implementation by pierluigiferrari at https://github.com/pierluigiferrari/ssd_keras, modified to be able to achieve the same results with tf.keras v1.15. An implementation of MobileNetV1-SSD is also added with promising results. Additionally contains experiments on binarization with larq when applied to Object Detection models. 
 
 The repository currently provides the following network architectures:
-* SSD300: [`keras_ssd300.py`](models/keras_ssd300.py)
-* SSD512: [`keras_ssd512.py`](models/keras_ssd512.py)
-* SSD7: [`keras_ssd7.py`](models/keras_ssd7.py) - a smaller 7-layer version that can be trained from scratch relatively quickly even on a mid-tier GPU, yet is capable enough for less complex object detection tasks and testing. You're obviously not going to get state-of-the-art results with that one, but it's fast.
+* SSD300-VGG: [`tfkeras_ssd_vgg.py`](models/tfkeras_ssd_vgg.py)
+* SSD300-MobileNetV1: [`tfkeras_ssd_mobilenet_3x3.py`](models/tfkeras_ssd_mobilenet_3x3.py)
+* SSD7: [`keras_ssd7.py`](models/keras_ssd7.py) - a smaller 7-layer version custom made by pierluigiferrari. Fast, but subpar results - best used as a toy model.
 
-If you would like to use one of the provided trained models for transfer learning (i.e. fine-tune one of the trained models on your own dataset), there is a [Jupyter notebook tutorial](weight_sampling_tutorial.ipynb) that helps you sub-sample the trained weights so that they are compatible with your dataset, see further below.
+Includes 3 implementations of SSD-MobileNetV1:
+1) tfkeras_ssd_mobilenet_3x3.py - imports tf.keras.applications MobileNetV1, and uses kernel size 3 on the detection heads.
+2) tfkeras_ssd_mobilenet_official.py - imports tf.keras.applications MobileNetV1, and uses kernel size 1 on the detection heads.
+2) tfkeras_ssd_mobilenet_beta.py - uses a defined MobileNetV1 at mobilenet_v1.py, and uses kernel size 1 on the detection heads.
 
 If you would like to build an SSD with your own base network architecture, you can use [`keras_ssd7.py`](models/keras_ssd7.py) as a template, it provides documentation and comments to help you.
 
 ### Performance
 
-Here are the mAP evaluation results of the ported weights and below that the evaluation results of a model trained from scratch using this implementation. All models were evaluated using the official Pascal VOC test server (for 2012 `test`) or the official Pascal VOC Matlab evaluation script (for 2007 `test`). In all cases the results match (or slightly surpass) those of the original Caffe models. Download links to all ported weights are available further below.
+In this section mAP evaluation results of models trained with this repository are compared with existing SSD implementations. All models were evaluated using the official Pascal VOC test server (for 2012 `test`) or the official Pascal VOC Matlab evaluation script (for 2007 `test`).
 
-<table width="70%">
-  <tr>
-    <td></td>
-    <td colspan=3 align=center>Mean Average Precision</td>
-  </tr>
-  <tr>
-    <td>evaluated on</td>
-    <td colspan=2 align=center>VOC2007 test</td>
-    <td align=center>VOC2012 test</td>
-  </tr>
-  <tr>
-    <td>trained on<br>IoU rule</td>
-    <td align=center width="25%">07+12<br>0.5</td>
-    <td align=center width="25%">07+12+COCO<br>0.5</td>
-    <td align=center width="25%">07++12+COCO<br>0.5</td>
-  </tr>
-  <tr>
-    <td><b>SSD300</td>
-    <td align=center><b>77.5</td>
-    <td align=center><b>81.2</td>
-    <td align=center><b>79.4</td>
-  </tr>
-  <tr>
-    <td><b>SSD512</td>
-    <td align=center><b>79.8</td>
-    <td align=center><b>83.2</td>
-    <td align=center><b>82.3</td>
-  </tr>
-</table>
+Note that training for the models trained with this repository are currently halted at 20 epochs/20,000 steps in the interest of time, as mAP already at this point looks promising and will achieve close to the expected performance.
 
-Training an SSD300 from scratch to convergence on Pascal VOC 2007 `trainval` and 2012 `trainval` produces the same mAP on Pascal VOC 2007 `test` as the original Caffe SSD300 "07+12" model. You can find a summary of the training [here](training_summaries/ssd300_pascal_07+12_training_summary.md).
+Training the SSD-VGG model on PASCAL VOC 7+12 for 20,000 steps yields the same mAP achieved by pierluigiferrari's implementation at this stage. You can find a summary of the training by pierluigiferrari [here](training_summaries/ssd300_pascal_07+12_training_summary.md).
 
 <table width="95%">
   <tr>
@@ -76,110 +47,60 @@ Training an SSD300 from scratch to convergence on Pascal VOC 2007 `trainval` and
   </tr>
   <tr>
     <td></td>
-    <td align=center>Original Caffe Model</td>
-    <td align=center>Ported Weights</td>
-    <td align=center>Trained from Scratch</td>
+    <td align=center>Ours@20k steps</td>
+    <td align=center>Pierlugiferrari's @ 20k steps</td>
+    <td align=center>Pierlugiferrari's @ 102k steps</td>
   </tr>
   <tr>
     <td><b>SSD300 "07+12"</td>
-    <td align=center width="26%"><b>0.772</td>
-    <td align=center width="26%"><b>0.775</td>
-    <td align=center width="26%"><b><a href="https://drive.google.com/file/d/1-MYYaZbIHNPtI2zzklgVBAjssbP06BeA/view">0.771</a></td>
+    <td align=center width="26%"><b>0.682</td>
+    <td align=center width="26%"><b>0.696</td>
+    <td align=center width="26%"><b>0.771</td>
   </tr>
 </table>
-
-The models achieve the following average number of frames per second (FPS) on Pascal VOC on an NVIDIA GeForce GTX 1070 mobile (i.e. the laptop version) and cuDNN v6. There are two things to note here. First, note that the benchmark prediction speeds of the original Caffe implementation were achieved using a TitanX GPU and cuDNN v4. Second, the paper says they measured the prediction speed at batch size 8, which I think isn't a meaningful way of measuring the speed. The whole point of measuring the speed of a detection model is to know how many individual sequential images the model can process per second, therefore measuring the prediction speed on batches of images and then deducing the time spent on each individual image in the batch defeats the purpose. For the sake of comparability, below you find the prediction speed for the original Caffe SSD implementation and the prediction speed for this implementation under the same conditions, i.e. at batch size 8. In addition you find the prediction speed for this implementation at batch size 1, which in my opinion is the more meaningful number.
-
-<table width>
-  <tr>
-    <td></td>
-    <td colspan=3 align=center>Frames per Second</td>
-  </tr>
-  <tr>
-    <td></td>
-    <td align=center>Original Caffe Implementation</td>
-    <td colspan=2 align=center>This Implementation</td>
-  </tr>
-  <tr>
-    <td width="14%">Batch Size</td>
-    <td width="27%" align=center>8</td>
-    <td width="27%" align=center>8</td>
-    <td width="27%" align=center>1</td>
-  </tr>
-  <tr>
-    <td><b>SSD300</td>
-    <td align=center><b>46</td>
-    <td align=center><b>49</td>
-    <td align=center><b>39</td>
-  </tr>
-  <tr>
-    <td><b>SSD512</td>
-    <td align=center><b>19</td>
-    <td align=center><b>25</td>
-    <td align=center><b>20</td>
-  </tr>
-  <tr>
-    <td><b>SSD7</td>
-    <td align=center><b></td>
-    <td align=center><b>216</td>
-    <td align=center><b>127</td>
-  </tr>
-</table>
-
-### Examples
-
-Below are some prediction examples of the fully trained original SSD300 "07+12" model (i.e. trained on Pascal VOC2007 `trainval` and VOC2012 `trainval`). The predictions were made on Pascal VOC2007 `test`.
-
-| | |
-|---|---|
-| ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_05_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_04_no_gt.png) |
-| ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_01_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_02_no_gt.png) |
-
-Here are some prediction examples of an SSD7 (i.e. the small 7-layer version) partially trained on two road traffic datasets released by [Udacity](https://github.com/udacity/self-driving-car/tree/master/annotations) with roughly 20,000 images in total and 5 object categories (more info in [`ssd7_training.ipynb`](ssd7_training.ipynb)). The predictions you see below were made after 10,000 training steps at batch size 32. Admittedly, cars are comparatively easy objects to detect and I picked a few of the better examples, but it is nonetheless remarkable what such a small model can do after only 10,000 training iterations.
-
-| | |
-|---|---|
-| ![img01](./examples/ssd7_udacity_traffic_pred_01.png) | ![img01](./examples/ssd7_udacity_traffic_pred_02.png) |
-| ![img01](./examples/ssd7_udacity_traffic_pred_03.png) | ![img01](./examples/ssd7_udacity_traffic_pred_04.png) |
 
 ### Dependencies
 
-* Python 3.x
+* Python 3.6 (Not confident if this implementation works with other python versions)
 * Numpy
-* TensorFlow 1.x
-* Keras 2.x
+* TensorFlow 1.15.x
 * OpenCV
 * Beautiful Soup 4.x
 
-The Theano and CNTK backends are currently not supported.
-
-Python 2 compatibility: This implementation seems to work with Python 2.7, but I don't provide any support for it. It's 2018 and nobody should be using Python 2 anymore.
-
 ### How to use it
 
-This repository provides Jupyter notebook tutorials that explain training, inference and evaluation, and there are a bunch of explanations in the subsequent sections that complement the notebooks.
+I have provided the Google Colab ipython notebooks used to train the models, and should contain all the necessary code for 
+- preparing a colab environment
+- training a model
+- evaluating a model
+- loading a model for inference
+
+However, some features were not used in these colab notebooks (such as the DecodeDetections layers). To compensate...
+
+The original repository by pierluigiferrari contains well-documented ipython notebooks for training, inference, evaluation, and the many features included in the repo. DO NOTE that these notebooks are unchanged and will not work with this repo - ONLY USE THEM AS A GUIDE.
 
 How to use a trained model for inference:
-* [`ssd300_inference.ipynb`](ssd300_inference.ipynb)
-* [`ssd512_inference.ipynb`](ssd512_inference.ipynb)
+* [`ssd300_inference.ipynb`](old_keras_notebooks/ssd300_inference.ipynb)
+* [`ssd512_inference.ipynb`](old_keras_notebooks/ssd512_inference.ipynb)
 
 How to train a model:
-* [`ssd300_training.ipynb`](ssd300_training.ipynb)
-* [`ssd7_training.ipynb`](ssd7_training.ipynb)
+* [`ssd300_training.ipynb`](old_keras_notebooks/ssd300_training.ipynb)
+* [`ssd7_training.ipynb`](old_keras_notebooks/ssd7_training.ipynb)
 
 How to use one of the provided trained models for transfer learning on your own dataset:
 * [Read below](#how-to-fine-tune-one-of-the-trained-models-on-your-own-dataset)
 
 How to evaluate a trained model:
-* In general: [`ssd300_evaluation.ipynb`](ssd300_evaluation.ipynb)
-* On MS COCO: [`ssd300_evaluation_COCO.ipynb`](ssd300_evaluation_COCO.ipynb)
+* In general: [`ssd300_evaluation.ipynb`](old_keras_notebooks/ssd300_evaluation.ipynb)
+* On MS COCO: [`ssd300_evaluation_COCO.ipynb`](old_keras_notebooks/ssd300_evaluation_COCO.ipynb)
 
 How to use the data generator:
-* The data generator used here has its own repository with a detailed tutorial [here](https://github.com/pierluigiferrari/data_generator_object_detection_2d)
+* The data generator used here has its own repository with a detailed tutorial [here]
+(https://github.com/pierluigiferrari/data_generator_object_detection_2d)
 
 #### Training details
 
-The general training setup is layed out and explained in [`ssd7_training.ipynb`](ssd7_training.ipynb) and in [`ssd300_training.ipynb`](ssd300_training.ipynb). The setup and explanations are similar in both notebooks for the most part, so it doesn't matter which one you look at to understand the general training setup, but the parameters in [`ssd300_training.ipynb`](ssd300_training.ipynb) are preset to copy the setup of the original Caffe implementation for training on Pascal VOC, while the parameters in [`ssd7_training.ipynb`](ssd7_training.ipynb) are preset to train on the [Udacity traffic datasets](https://github.com/udacity/self-driving-car/tree/master/annotations).
+The general training setup is layed out and explained in [`ssd7_training.ipynb`](old_keras_notebooks/ssd7_training.ipynb) and in [`ssd300_training.ipynb`](old_keras_notebooks/ssd300_training.ipynb). The setup and explanations are similar in both notebooks for the most part, so it doesn't matter which one you look at to understand the general training setup, but the parameters in [`ssd300_training.ipynb`](old_keras_notebooks/ssd300_training.ipynb) are preset to copy the setup of the original Caffe implementation for training on Pascal VOC, while the parameters in [`ssd7_training.ipynb`](old_keras_notebooks/ssd7_training.ipynb) are preset to train on the [Udacity traffic datasets](https://github.com/udacity/self-driving-car/tree/master/annotations).
 
 To train the original SSD300 model on Pascal VOC:
 
@@ -208,7 +129,7 @@ A note on the anchor box offset coordinates used internally by the model: This m
 
 #### Using a different base network architecture
 
-If you want to build a different base network architecture, you could use [`keras_ssd7.py`](models/keras_ssd7.py) as a template. It provides documentation and comments to help you turn it into a different base network. Put together the base network you want and add a predictor layer on top of each network layer from which you would like to make predictions. Create two predictor heads for each, one for localization, one for classification. Create an anchor box layer for each predictor layer and set the respective localization head's output as the input for the anchor box layer. The structure of all tensor reshaping and concatenation operations remains the same, you just have to make sure to include all of your predictor and anchor box layers of course.
+If you want to build a different base network architecture, you could use [`tfkeras_ssd7.py`](models/tfkeras_ssd7.py) as a template. It provides documentation and comments to help you turn it into a different base network. Put together the base network you want and add a predictor layer on top of each network layer from which you would like to make predictions. Create two predictor heads for each, one for localization, one for classification. Create an anchor box layer for each predictor layer and set the respective localization head's output as the input for the anchor box layer. The structure of all tensor reshaping and concatenation operations remains the same, you just have to make sure to include all of your predictor and anchor box layers of course.
 
 ### Download the convolutionalized VGG-16 weights
 
@@ -218,44 +139,11 @@ In order to train an SSD300 or SSD512 from scratch, download the weights of the 
 
 As with all other weights files below, this is a direct port of the corresponding `.caffemodel` file that is provided in the repository of the original Caffe implementation.
 
-### Download the original trained model weights
-
-Here are the ported weights for all the original trained models. The filenames correspond to their respective `.caffemodel` counterparts. The asterisks and footnotes refer to those in the README of the [original Caffe implementation](https://github.com/weiliu89/caffe/tree/ssd#models).
-
-1. PASCAL VOC models:
-
-    * 07+12: [SSD300*](https://drive.google.com/open?id=121-kCXaOHOkJE_Kf5lKcJvC_5q1fYb_q), [SSD512*](https://drive.google.com/open?id=19NIa0baRCFYT3iRxQkOKCD7CpN6BFO8p)
-    * 07++12: [SSD300*](https://drive.google.com/open?id=1M99knPZ4DpY9tI60iZqxXsAxX2bYWDvZ), [SSD512*](https://drive.google.com/open?id=18nFnqv9fG5Rh_fx6vUtOoQHOLySt4fEx)
-    * COCO[1]: [SSD300*](https://drive.google.com/open?id=17G1J4zEpFwiOzgBmq886ci4P3YaIz8bY), [SSD512*](https://drive.google.com/open?id=1wGc368WyXSHZOv4iow2tri9LnB0vm9X-)
-    * 07+12+COCO: [SSD300*](https://drive.google.com/open?id=1vtNI6kSnv7fkozl7WxyhGyReB6JvDM41), [SSD512*](https://drive.google.com/open?id=14mELuzm0OvXnwjb0mzAiG-Ake9_NP_LQ)
-    * 07++12+COCO: [SSD300*](https://drive.google.com/open?id=1fyDDUcIOSjeiP08vl1WCndcFdtboFXua), [SSD512*](https://drive.google.com/open?id=1a-64b6y6xsQr5puUsHX_wxI1orQDercM)
-
-
-2. COCO models:
-
-    * trainval35k: [SSD300*](https://drive.google.com/open?id=1vmEF7FUsWfHquXyCqO17UaXOPpRbwsdj), [SSD512*](https://drive.google.com/open?id=1IJWZKmjkcFMlvaz2gYukzFx4d6mH3py5)
-
-
-3. ILSVRC models:
-
-    * trainval1: [SSD300*](https://drive.google.com/open?id=1VWkj1oQS2RUhyJXckx3OaDYs5fx2mMCq), [SSD500](https://drive.google.com/open?id=1LcBPsd9CJbuBw4KiSuE1o1fMA-Pz2Zvw)
-
 ### How to fine-tune one of the trained models on your own dataset
 
 If you want to fine-tune one of the provided trained models on your own dataset, chances are your dataset doesn't have the same number of classes as the trained model. The following tutorial explains how to deal with this problem:
 
-[`weight_sampling_tutorial.ipynb`](weight_sampling_tutorial.ipynb)
-
-### ToDo
-
-The following things are on the to-do list, ranked by priority. Contributions are welcome, but please read the [contributing guidelines](CONTRIBUTING.md).
-
-1. Add model definitions and trained weights for SSDs based on other base networks such as MobileNet, InceptionResNetV2, or DenseNet.
-2. Add support for the Theano and CNTK backends. Requires porting the custom layers and the loss function from TensorFlow to the abstract Keras backend.
-
-Currently in the works:
-
-* A new [Focal Loss](https://arxiv.org/abs/1708.02002) loss function.
+[`weight_sampling_tutorial.ipynb`](old_keras_notebooks/weight_sampling_tutorial.ipynb)
 
 ### Important notes
 
@@ -266,4 +154,3 @@ Currently in the works:
 * "Anchor boxes": The paper calls them "default boxes", in the original C++ code they are called "prior boxes" or "priors", and the Faster R-CNN paper calls them "anchor boxes". All terms mean the same thing, but I slightly prefer the name "anchor boxes" because I find it to be the most descriptive of these names. I call them "prior boxes" or "priors" in `keras_ssd300.py` and `keras_ssd512.py` to stay consistent with the original Caffe implementation, but everywhere else I use the name "anchor boxes" or "anchors".
 * "Labels": For the purpose of this project, datasets consist of "images" and "labels". Everything that belongs to the annotations of a given image is the "labels" of that image: Not just object category labels, but also bounding box coordinates. "Labels" is just shorter than "annotations". I also use the terms "labels" and "targets" more or less interchangeably throughout the documentation, although "targets" means labels specifically in the context of training.
 * "Predictor layer": The "predictor layers" or "predictors" are all the last convolution layers of the network, i.e. all convolution layers that do not feed into any subsequent convolution layers.
-# ssd-keras
