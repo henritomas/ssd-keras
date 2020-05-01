@@ -1,5 +1,5 @@
 # In this Repo:
-## SSD: Single-Shot MultiBox Detector implementation in tensorflow.keras v1.15
+## SSD-[MobileNetV1, VGG] in tensorflow.keras v1.15
 ## Faster Object Detection with Binarized MobileNetV1-SSD (implemented in larq)
 ---
 ### Contents
