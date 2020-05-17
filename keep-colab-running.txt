@@ -1,0 +1,11 @@
+in Ctrl+Shift+I of colab web page (inspect web page) >>
+in javascript console copy-paste >>
+
+function ConnectButton(){
+    console.log("Working"); 
+    document.querySelector("colab-connect-button").click() 
+}
+setInterval(ConnectButton,30000);
+
+*this clicks the reconnect button every 30s in the case it disconnects because
+*colab is "idle" (even though it's running a process)
